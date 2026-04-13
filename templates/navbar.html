@@ -1,0 +1,9 @@
+{% load i18n %}
+<nav>
+    <a href="/">OpenASBL</a>
+    {% if user.is_authenticated %}
+        <a href="{% url 'accounting:entry_list' %}">{% trans "Écritures" %}</a>
+        <a href="{% url 'reports:report_select' %}">{% trans "Rapports" %}</a>
+        <a href="{% url 'accounts:logout' %}">{% trans "Déconnexion" %}</a>
+    {% endif %}
+</nav>

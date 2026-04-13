@@ -1,0 +1,6 @@
+Django>=5.0,<5.1
+django-htmx>=1.17
+whitenoise>=6.6
+weasyprint>=61
+openpyxl>=3.1
+gunicorn>=21
