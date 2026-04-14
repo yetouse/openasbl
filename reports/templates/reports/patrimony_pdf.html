@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>État du patrimoine</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; color: #1e293b; line-height: 1.4; margin: 20px; }
+        h1 { font-size: 18px; margin-bottom: 4px; }
+        h2 { font-size: 14px; color: #64748b; margin-bottom: 16px; font-weight: 400; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; max-width: 500px; }
+        th, td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 600; text-align: left; font-size: 10px; text-transform: uppercase; }
+        .num { text-align: right; }
+        .section-header td { font-weight: 700; background: #f1f5f9; }
+        .net-worth td { font-weight: 700; border-top: 2px solid #1e293b; font-size: 13px; }
+        .positive { color: #16a34a; }
+        .negative { color: #dc2626; }
+        .empty-msg { color: #64748b; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>État du patrimoine</h1>
+    <h2>{{ organization.name }} &mdash; Exercice {{ fiscal_year.start_date }} &rarr; {{ fiscal_year.end_date }}</h2>
+
+    {% if snapshot %}
+    <p style="color:#64748b; margin-bottom: 8px;">Relevé au {{ snapshot.date }}</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Poste</th>
+                <th class="num">Montant</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="section-header"><td colspan="2">Actifs</td></tr>
+            <tr><td>Caisse</td><td class="num">{{ snapshot.cash }} €</td></tr>
+            <tr><td>Banque</td><td class="num">{{ snapshot.bank }} €</td></tr>
+            <tr><td>Créances</td><td class="num">{{ snapshot.receivables }} €</td></tr>
+            <tr class="section-header"><td colspan="2">Passifs</td></tr>
+            <tr><td>Dettes</td><td class="num">{{ snapshot.debts }} €</td></tr>
+        </tbody>
+        <tfoot>
+            <tr class="net-worth">
+                <td>Valeur nette</td>
+                <td class="num {% if snapshot.net_worth >= 0 %}positive{% else %}negative{% endif %}">{{ snapshot.net_worth }} €</td>
+            </tr>
+        </tfoot>
+    </table>
+    {% else %}
+    <p class="empty-msg">Aucun relevé de patrimoine disponible pour cet exercice.</p>
+    {% endif %}
+</body>
+</html>
