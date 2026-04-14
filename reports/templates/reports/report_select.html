@@ -103,6 +103,7 @@
                 <div class="d-flex gap-2">
                     <a id="annual-accounts-pdf" class="btn btn-primary btn-sm" href="#" target="_blank">PDF</a>
                     <a id="annual-accounts-excel" class="btn btn-primary btn-sm" href="#" target="_blank">Excel</a>
+                    <a id="annual-accounts-xbrl" class="btn btn-outline-primary btn-sm" href="#" title="Export XBRL pour dépôt à la BNB">XBRL (BNB)</a>
                 </div>
             </div>
         </div>
@@ -158,6 +159,7 @@
         document.getElementById('budget-tracking-excel').href = '{% url "reports:budget_tracking_excel" %}?fiscal_year=' + fy;
         document.getElementById('annual-accounts-pdf').href = '{% url "reports:annual_accounts_pdf" %}?fiscal_year=' + fy;
         document.getElementById('annual-accounts-excel').href = '{% url "reports:annual_accounts_excel" %}?fiscal_year=' + fy;
+        document.getElementById('annual-accounts-xbrl').href = '{% url "reports:annual_accounts_xbrl" %}?fiscal_year=' + fy;
 
         // Year comparison: include all fiscal years
         var allFys = [];

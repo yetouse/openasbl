@@ -142,6 +142,7 @@ class LoginRequiredTest(TestCase):
             reverse("reports:budget_tracking_excel"),
             reverse("reports:annual_accounts_pdf"),
             reverse("reports:annual_accounts_excel"),
+            reverse("reports:annual_accounts_xbrl"),
             reverse("reports:year_comparison_pdf"),
         ]
         for url in urls:

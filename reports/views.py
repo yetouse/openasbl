@@ -13,6 +13,7 @@ from .generators.pdf import (
     generate_patrimony_pdf,
     generate_year_comparison_pdf,
 )
+from .generators.xbrl import generate_xbrl
 
 
 @login_required
@@ -112,6 +113,18 @@ def annual_accounts_excel(request):
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
     response["Content-Disposition"] = f'attachment; filename="comptes_annuels_{fy.pk}.xlsx"'
+    return response
+
+
+@login_required
+def annual_accounts_xbrl(request):
+    fy = get_object_or_404(FiscalYear, pk=request.GET.get("fiscal_year"))
+    xbrl_bytes = generate_xbrl(fy)
+    enterprise = fy.organization.enterprise_number or "0000000000"
+    clean_num = "".join(c for c in enterprise if c.isdigit())
+    filename = f"{fy.end_date.year}-{clean_num}-openasbl.xbrl"
+    response = HttpResponse(xbrl_bytes, content_type="application/xml; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
 
