@@ -149,6 +149,52 @@ class BudgetViewTest(TestCase):
         self.client.login(username="admin", password="test123")
 
     def test_create_budget(self):
-        response = self.client.post(f"/fiscal-years/{self.fy.pk}/budget/create/", {"category": self.category.pk, "planned_amount": "5000.00"})
+        response = self.client.post(f"/fiscal-years/{self.fy.pk}/budget/create/", {
+            f"budget_{self.category.pk}": "5000.00",
+        })
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Budget.objects.count(), 1)
+        self.assertEqual(Budget.objects.first().planned_amount, Decimal("5000.00"))
+
+    def test_update_budget(self):
+        Budget.objects.create(fiscal_year=self.fy, category=self.category, planned_amount=Decimal("3000.00"))
+        response = self.client.post(f"/fiscal-years/{self.fy.pk}/budget/create/", {
+            f"budget_{self.category.pk}": "5000.00",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Budget.objects.count(), 1)
+        self.assertEqual(Budget.objects.first().planned_amount, Decimal("5000.00"))
+
+    def test_budget_form_shows_existing(self):
+        Budget.objects.create(fiscal_year=self.fy, category=self.category, planned_amount=Decimal("3000.00"))
+        response = self.client.get(f"/fiscal-years/{self.fy.pk}/budget/create/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "3000")
+
+
+class BudgetTrackingViewTest(TestCase):
+    def setUp(self):
+        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.user = User.objects.create_user(username="admin", password="test123")
+        UserProfile.objects.create(user=self.user, organization=self.org, permission_level=PermissionLevel.GESTION)
+        self.fy = FiscalYear.objects.create(organization=self.org, start_date=date(2026, 1, 1), end_date=date(2026, 12, 31))
+        self.cat = Category.objects.create(organization=self.org, name="Cotisations", category_type=CategoryType.INCOME)
+        self.client.login(username="admin", password="test123")
+
+    def test_budget_tracking_loads(self):
+        Budget.objects.create(fiscal_year=self.fy, category=self.cat, planned_amount=Decimal("5000.00"))
+        Entry.objects.create(fiscal_year=self.fy, category=self.cat, date=date(2026, 3, 15), amount=Decimal("2000.00"), description="Cotisation", created_by=self.user)
+        response = self.client.get(f"/fiscal-years/{self.fy.pk}/budget-tracking/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Suivi budgétaire")
+        self.assertContains(response, "5 000,00")
+        self.assertContains(response, "2 000,00")
+
+    def test_budget_tracking_empty(self):
+        response = self.client.get(f"/fiscal-years/{self.fy.pk}/budget-tracking/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_budget_tracking_requires_login(self):
+        self.client.logout()
+        response = self.client.get(f"/fiscal-years/{self.fy.pk}/budget-tracking/")
+        self.assertEqual(response.status_code, 302)

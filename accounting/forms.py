@@ -6,8 +6,12 @@ class EntryForm(forms.ModelForm):
         model = Entry
         fields = ("fiscal_year", "category", "date", "amount", "description", "attachment")
         widgets = {
-            "date": forms.DateInput(attrs={"type": "date"}),
-            "amount": forms.NumberInput(attrs={"step": "0.01", "min": "0.01"}),
+            "date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "amount": forms.NumberInput(attrs={"step": "0.01", "min": "0.01", "class": "form-control"}),
+            "description": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ex: Cotisation Jean Dupont"}),
+            "fiscal_year": forms.Select(attrs={"class": "form-select"}),
+            "category": forms.Select(attrs={"class": "form-select"}),
+            "attachment": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
 
 class CategoryForm(forms.ModelForm):

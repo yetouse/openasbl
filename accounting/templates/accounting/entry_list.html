@@ -1,29 +1,82 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n accounting_filters %}
 
-{% block title %}Ecritures — OpenASBL{% endblock %}
+{% block title %}Écritures — OpenASBL{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-4">{% trans "Ecritures" %}</h1>
-<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-    <form method="get" class="d-inline-flex align-items-center gap-2">
-        <select name="fiscal_year" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
-            <option value="">Tous les exercices</option>
-            {% for fy in fiscal_years %}
-            <option value="{{ fy.pk }}" {% if selected_fy == fy.pk|stringformat:"d" %}selected{% endif %}>{{ fy }}</option>
-            {% endfor %}
-        </select>
-    </form>
-    <a href="{% url 'accounting:entry_create' %}" class="btn btn-primary btn-sm">Nouvelle ecriture</a>
+<h1 class="h3 mb-4">{% trans "Écritures" %}</h1>
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small text-muted mb-1">Exercice</label>
+                <select name="fiscal_year" class="form-select form-select-sm" style="width: auto;">
+                    <option value="">Tous les exercices</option>
+                    {% for fy in fiscal_years %}
+                    <option value="{{ fy.pk }}" {% if selected_fy == fy.pk|stringformat:"d" %}selected{% endif %}>{{ fy }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label small text-muted mb-1">Type</label>
+                <select name="type" class="form-select form-select-sm" style="width: auto;">
+                    <option value="">Tous</option>
+                    <option value="income" {% if selected_type == "income" %}selected{% endif %}>Recettes</option>
+                    <option value="expense" {% if selected_type == "expense" %}selected{% endif %}>Dépenses</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label small text-muted mb-1">Catégorie</label>
+                <select name="category" class="form-select form-select-sm" style="width: auto;">
+                    <option value="">Toutes</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.pk }}" {% if selected_category == cat.pk|stringformat:"d" %}selected{% endif %}>{{ cat.name }} ({{ cat.get_category_type_display }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col">
+                <label class="form-label small text-muted mb-1">Recherche</label>
+                <input type="text" name="q" class="form-control form-control-sm" placeholder="Description..." value="{{ search_query }}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm">Filtrer</button>
+                {% if selected_fy or selected_type or selected_category or search_query %}
+                <a href="{% url 'accounting:entry_list' %}" class="btn btn-outline-secondary btn-sm">Effacer</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
 </div>
+
+{% if totals %}
+<div class="row g-3 mb-3">
+    <div class="col-auto">
+        <span class="badge bg-success fs-6">Recettes : {{ totals.income|money }} &euro;</span>
+    </div>
+    <div class="col-auto">
+        <span class="badge bg-danger fs-6">Dépenses : {{ totals.expenses|money }} &euro;</span>
+    </div>
+    <div class="col-auto">
+        <span class="badge {% if totals.balance >= 0 %}bg-primary{% else %}bg-warning text-dark{% endif %} fs-6">Solde : {{ totals.balance|money }} &euro;</span>
+    </div>
+    <div class="col-auto">
+        <span class="badge bg-secondary fs-6">{{ totals.count }} écriture{{ totals.count|pluralize:"s" }}</span>
+    </div>
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between mb-2">
+    <a href="{% url 'accounting:entry_create' %}" class="btn btn-primary btn-sm">Nouvelle écriture</a>
+</div>
+
 <div class="table-responsive">
     <table class="table table-striped table-hover">
         <thead class="table-light">
             <tr>
                 <th>{% trans "Date" %}</th>
                 <th>{% trans "Description" %}</th>
-                <th>{% trans "Categorie" %}</th>
-                <th>{% trans "Montant" %}</th>
+                <th>{% trans "Catégorie" %}</th>
+                <th class="text-end">{% trans "Montant" %}</th>
                 <th>{% trans "Actions" %}</th>
             </tr>
         </thead>
@@ -32,20 +85,20 @@
             <tr>
                 <td>{{ entry.date }}</td>
                 <td>{{ entry.description }}</td>
-                <td>{{ entry.category.name }}</td>
-                <td class="{% if entry.entry_type == 'income' %}text-success fw-bold{% else %}text-danger fw-bold{% endif %}">
-                    {% if entry.entry_type == 'expense' %}-{% endif %}{{ entry.amount }} &euro;
+                <td><span class="badge {% if entry.entry_type == 'income' %}bg-success{% else %}bg-danger{% endif %}">{{ entry.category.name }}</span></td>
+                <td class="text-end {% if entry.entry_type == 'income' %}text-success{% else %}text-danger{% endif %} fw-bold">
+                    {% if entry.entry_type == 'expense' %}-{% endif %}{{ entry.amount|money }} &euro;
                 </td>
                 <td>
                     <a href="{% url 'accounting:entry_edit' entry.pk %}" class="btn btn-outline-secondary btn-sm me-1">Modifier</a>
                     <form method="post" action="{% url 'accounting:entry_delete' entry.pk %}" class="d-inline">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer cette ecriture ?')">Supprimer</button>
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer cette écriture ?')">Supprimer</button>
                     </form>
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="5" class="text-muted">Aucune ecriture.</td></tr>
+            <tr><td colspan="5" class="text-muted">Aucune écriture.</td></tr>
             {% endfor %}
         </tbody>
     </table>

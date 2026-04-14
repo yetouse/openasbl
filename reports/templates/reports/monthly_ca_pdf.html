@@ -22,8 +22,13 @@
     </style>
 </head>
 <body>
-    <h1>Rapport mensuel — Conseil d'Administration</h1>
-    <h2>{{ organization.name }} &mdash; {{ month_name }} {{ year }}</h2>
+    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
+        {% if logo_path %}<img src="file://{{ logo_path }}" style="height: 50px;" alt="">{% endif %}
+        <div>
+            <h1 style="margin-bottom: 2px;">Rapport mensuel — Conseil d'Administration</h1>
+            <h2 style="margin-bottom: 0;">{{ organization.name }} &mdash; {{ month_name }} {{ year }}</h2>
+        </div>
+    </div>
 
     <div class="summary">
         <div class="summary-card">

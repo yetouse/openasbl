@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Suivi budgétaire</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; color: #1e293b; line-height: 1.4; margin: 20px; }
+        h1 { font-size: 18px; margin-bottom: 4px; }
+        h2 { font-size: 14px; color: #64748b; margin-bottom: 16px; font-weight: 400; }
+        h3 { font-size: 13px; margin-top: 20px; margin-bottom: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        th, td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        th { background: #f8fafc; font-weight: 600; font-size: 10px; text-transform: uppercase; }
+        .num { text-align: right; }
+        .positive { color: #16a34a; }
+        .negative { color: #dc2626; }
+        .totals td { font-weight: 700; border-top: 2px solid #1e293b; }
+        .balance td { font-weight: 700; font-size: 12px; border-top: 2px solid #1e293b; }
+        .pct { font-size: 10px; color: #64748b; }
+    </style>
+</head>
+<body>
+    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
+        {% if logo_path %}<img src="file://{{ logo_path }}" style="height: 50px;" alt="">{% endif %}
+        <div>
+            <h1 style="margin-bottom: 2px;">Suivi budgétaire</h1>
+            <h2 style="margin-bottom: 0;">{{ organization.name }} &mdash; Exercice {{ fiscal_year.start_date }} &rarr; {{ fiscal_year.end_date }}</h2>
+        </div>
+    </div>
+
+    <h3>Recettes</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Catégorie</th>
+                <th class="num">Budget</th>
+                <th class="num">Réalisé</th>
+                <th class="num">Écart</th>
+                <th class="num">%</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in income_rows %}
+            <tr>
+                <td>{{ row.category.name }}</td>
+                <td class="num">{{ row.planned }} &euro;</td>
+                <td class="num">{{ row.actual }} &euro;</td>
+                <td class="num {% if row.diff >= 0 %}positive{% else %}negative{% endif %}">{{ row.diff }} &euro;</td>
+                <td class="num pct">{% if row.pct != None %}{{ row.pct|floatformat:0 }}%{% else %}&mdash;{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center; color:#64748b;">Aucune catégorie de recette</td></tr>
+            {% endfor %}
+        </tbody>
+        {% if income_rows %}
+        <tfoot>
+            <tr class="totals">
+                <td>TOTAL RECETTES</td>
+                <td class="num">{{ total_budget_income }} &euro;</td>
+                <td class="num">{{ total_actual_income }} &euro;</td>
+                <td class="num {% if total_diff_income >= 0 %}positive{% else %}negative{% endif %}">{{ total_diff_income }} &euro;</td>
+                <td></td>
+            </tr>
+        </tfoot>
+        {% endif %}
+    </table>
+
+    <h3>Dépenses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Catégorie</th>
+                <th class="num">Budget</th>
+                <th class="num">Réalisé</th>
+                <th class="num">Écart</th>
+                <th class="num">%</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in expense_rows %}
+            <tr>
+                <td>{{ row.category.name }}</td>
+                <td class="num">{{ row.planned }} &euro;</td>
+                <td class="num">{{ row.actual }} &euro;</td>
+                <td class="num {% if row.diff > 0 %}negative{% elif row.diff < 0 %}positive{% endif %}">{{ row.diff }} &euro;</td>
+                <td class="num pct">{% if row.pct != None %}{{ row.pct|floatformat:0 }}%{% else %}&mdash;{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center; color:#64748b;">Aucune catégorie de dépense</td></tr>
+            {% endfor %}
+        </tbody>
+        {% if expense_rows %}
+        <tfoot>
+            <tr class="totals">
+                <td>TOTAL DÉPENSES</td>
+                <td class="num">{{ total_budget_expense }} &euro;</td>
+                <td class="num">{{ total_actual_expense }} &euro;</td>
+                <td class="num {% if total_diff_expense > 0 %}negative{% elif total_diff_expense < 0 %}positive{% endif %}">{{ total_diff_expense }} &euro;</td>
+                <td></td>
+            </tr>
+        </tfoot>
+        {% endif %}
+
+    <table>
+        <tfoot>
+            <tr class="balance">
+                <td>SOLDE (Recettes - Dépenses)</td>
+                <td class="num">{{ budget_balance }} &euro;</td>
+                <td class="num {% if actual_balance >= 0 %}positive{% else %}negative{% endif %}">{{ actual_balance }} &euro;</td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>

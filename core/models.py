@@ -8,6 +8,7 @@ class Organization(models.Model):
     enterprise_number = models.CharField("Numéro d'entreprise (BCE)", max_length=20, blank=True, default="")
     email = models.EmailField("Email", blank=True, default="")
     phone = models.CharField("Téléphone", max_length=30, blank=True, default="")
+    logo = models.ImageField("Logo", upload_to="logos/", blank=True)
 
     class Meta:
         verbose_name = "Organisation"

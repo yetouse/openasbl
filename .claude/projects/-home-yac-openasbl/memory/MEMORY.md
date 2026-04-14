@@ -1,4 +1,6 @@
 - [Project setup](project_setup.md) — OpenASBL repo on GitHub, write access confirmed
 - [Yannick](user_yannick.md) — Project owner, communicates in French
 - [ASBL Context](project_asbl_context.md) — RCVD, club de voile à Dave, ~300 membres, péniche
-- [Tech stack & état](project_tech_stack.md) — v1 implémenté, Django+SQLite+HTMX, 67 tests, prochaines étapes
+- [Tech stack & état](project_tech_stack.md) — v1 implémenté, Django+SQLite+HTMX+Bootstrap 5, 71 tests
+- [Design UI](feedback_design.md) — Bleu marine #1e3a5f, pas de bleu vif, style sobre
+- [RCVD context](user_rcvd_context.md) — Yannick est membre RCVD, app demandée par le trésorier

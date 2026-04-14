@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n accounting_filters %}
 
 {% block title %}Exercices comptables — OpenASBL{% endblock %}
 
@@ -9,30 +9,43 @@
 <div class="table-responsive">
     <table class="table table-striped table-hover">
         <thead class="table-light">
-            <tr><th>{% trans "Période" %}</th><th>{% trans "Statut" %}</th><th>{% trans "Actions" %}</th></tr>
+            <tr>
+                <th>{% trans "Période" %}</th>
+                <th>{% trans "Statut" %}</th>
+                <th class="text-end">{% trans "Recettes" %}</th>
+                <th class="text-end">{% trans "Dépenses" %}</th>
+                <th class="text-end">{% trans "Solde" %}</th>
+                <th class="text-center">{% trans "Écr." %}</th>
+                <th>{% trans "Actions" %}</th>
+            </tr>
         </thead>
         <tbody>
-            {% for fy in fiscal_years %}
+            {% for item in fy_data %}
             <tr>
-                <td>{{ fy }}</td>
+                <td>{{ item.fy }}</td>
                 <td>
-                    {% if fy.status == "open" %}
-                    <span class="badge bg-success">{{ fy.get_status_display }}</span>
+                    {% if item.fy.status == "open" %}
+                    <span class="badge bg-success">{{ item.fy.get_status_display }}</span>
                     {% else %}
-                    <span class="badge bg-secondary">{{ fy.get_status_display }}</span>
+                    <span class="badge bg-secondary">{{ item.fy.get_status_display }}</span>
                     {% endif %}
                 </td>
+                <td class="text-end text-success">{{ item.income|money }} &euro;</td>
+                <td class="text-end text-danger">{{ item.expenses|money }} &euro;</td>
+                <td class="text-end fw-bold {% if item.balance >= 0 %}text-success{% else %}text-danger{% endif %}">{{ item.balance|money }} &euro;</td>
+                <td class="text-center">{{ item.entry_count }}</td>
                 <td>
-                    {% if fy.status == "open" %}
-                    <a href="{% url 'accounting:budget_create' fy.pk %}" class="btn btn-outline-secondary btn-sm">Budget</a>
-                    <a href="{% url 'accounting:asset_snapshot_create' fy.pk %}" class="btn btn-outline-secondary btn-sm">Patrimoine</a>
-                    <a href="{% url 'accounting:fiscal_year_close' fy.pk %}" class="btn btn-danger btn-sm">Clôturer</a>
+                    {% if item.fy.status == "open" %}
+                    <a href="{% url 'accounting:budget_create' item.fy.pk %}" class="btn btn-outline-secondary btn-sm">Budget</a>
+                    <a href="{% url 'accounting:asset_snapshot_create' item.fy.pk %}" class="btn btn-outline-secondary btn-sm">Patrimoine</a>
+                    <a href="{% url 'accounting:fiscal_year_close' item.fy.pk %}" class="btn btn-danger btn-sm">Clôturer</a>
                     {% endif %}
-                    <a href="{% url 'accounting:entry_list' %}?fiscal_year={{ fy.pk }}" class="btn btn-outline-primary btn-sm">Écritures</a>
+                    <a href="{% url 'accounting:budget_tracking' item.fy.pk %}" class="btn btn-outline-info btn-sm">Suivi budget</a>
+                    <a href="{% url 'accounting:entry_list' %}?fiscal_year={{ item.fy.pk }}" class="btn btn-outline-primary btn-sm">Écritures</a>
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="3" class="text-muted">Aucun exercice.</td></tr>
+            <tr><td colspan="7" class="text-muted">Aucun exercice.</td></tr>
             {% endfor %}
         </tbody>
     </table>
