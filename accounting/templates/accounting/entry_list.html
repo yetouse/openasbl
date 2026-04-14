@@ -1,10 +1,13 @@
 {% extends "base.html" %}
-{% load i18n accounting_filters %}
+{% load i18n accounting_filters help_tags %}
 
 {% block title %}Écritures — OpenASBL{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-4">{% trans "Écritures" %}</h1>
+<div class="d-flex align-items-center gap-2 mb-4">
+    <h1 class="h3 mb-0">{% trans "Écritures" %}</h1>
+    {% help_button "entry_list" %}
+</div>
 <div class="card shadow-sm mb-4">
     <div class="card-body">
         <form method="get" class="row g-2 align-items-end">

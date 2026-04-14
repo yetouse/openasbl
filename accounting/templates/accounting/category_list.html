@@ -1,10 +1,13 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n help_tags %}
 
 {% block title %}Catégories — OpenASBL{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-4">{% trans "Catégories" %}</h1>
+<div class="d-flex align-items-center gap-2 mb-4">
+    <h1 class="h3 mb-0">{% trans "Catégories" %}</h1>
+    {% help_button "category" %}
+</div>
 <a href="{% url 'accounting:category_create' %}" class="btn btn-primary mb-3">Nouvelle catégorie</a>
 
 <h2 class="h5 mt-4 mb-3">Recettes</h2>

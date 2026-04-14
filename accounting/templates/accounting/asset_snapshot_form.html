@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n help_tags %}
 
 {% block title %}État du patrimoine — OpenASBL{% endblock %}
 
@@ -8,7 +8,10 @@
     <div class="col-lg-6">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h1 class="card-title h4 mb-4">État du patrimoine — {{ fiscal_year }}</h1>
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <h1 class="card-title h4 mb-0">État du patrimoine — {{ fiscal_year }}</h1>
+                    {% help_button "asset_snapshot" %}
+                </div>
                 <form method="post">
                     {% csrf_token %}
                     {% for field in form %}

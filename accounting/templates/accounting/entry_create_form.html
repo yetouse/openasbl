@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n help_tags %}
 
 {% block title %}{{ title }} — OpenASBL{% endblock %}
 
@@ -8,7 +8,10 @@
     <div class="col-lg-7">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h1 class="card-title h4 mb-4">{{ title }}</h1>
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <h1 class="card-title h4 mb-0">{{ title }}</h1>
+                    {% help_button "entry_create" %}
+                </div>
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
 

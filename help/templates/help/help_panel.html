@@ -1,9 +1,11 @@
 {% if text %}
-<div class="alert alert-info">
-    <p class="mb-0">{{ text }}</p>
+<div class="alert alert-info alert-dismissible fade show mt-3 shadow-sm" role="alert">
+    <div>{{ text|safe }}</div>
+    <button type="button" class="btn-close" onclick="this.parentElement.remove()" aria-label="Fermer"></button>
 </div>
 {% else %}
-<div class="alert alert-light">
+<div class="alert alert-light alert-dismissible fade show mt-3" role="alert">
     <p class="text-muted mb-0">Aucune aide disponible pour ce sujet.</p>
+    <button type="button" class="btn-close" onclick="this.parentElement.remove()" aria-label="Fermer"></button>
 </div>
 {% endif %}
