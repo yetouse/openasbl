@@ -1,9 +1,13 @@
 {% extends "base.html" %}
+{% load help_tags %}
 
 {% block title %}Rapports — OpenASBL{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-4">Rapports</h1>
+<div class="d-flex align-items-center gap-2 mb-4">
+    <h1 class="h3 mb-0">Rapports</h1>
+    {% help_button "reports" %}
+</div>
 
 <div class="mb-4">
     <label for="fy-select" class="form-label fw-semibold">Exercice comptable :</label>

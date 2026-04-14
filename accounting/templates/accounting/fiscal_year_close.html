@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n help_tags %}
 
 {% block title %}Clôturer l'exercice — OpenASBL{% endblock %}
 
@@ -8,7 +8,10 @@
     <div class="col-md-6">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h1 class="card-title h4 mb-3">{% trans "Clôturer l'exercice" %}</h1>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <h1 class="card-title h4 mb-0">{% trans "Clôturer l'exercice" %}</h1>
+                    {% help_button "fiscal_year_close" %}
+                </div>
                 <p>Êtes-vous sûr de vouloir clôturer l'exercice <strong>{{ fiscal_year }}</strong> ?</p>
                 <div class="alert alert-danger">
                     Cette action est irréversible. Aucune écriture ne pourra être ajoutée après la clôture.
