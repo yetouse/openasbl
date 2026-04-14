@@ -406,6 +406,9 @@ def budget_tracking(request, pk):
             total_budget_expense += planned
             total_actual_expense += actual
 
+    actual_balance = total_actual_income - total_actual_expense
+    budget_balance = total_budget_income - total_budget_expense
+
     return render(request, "accounting/budget_tracking.html", {
         "fiscal_year": fy,
         "income_rows": income_rows,
@@ -414,8 +417,11 @@ def budget_tracking(request, pk):
         "total_actual_income": total_actual_income,
         "total_budget_expense": total_budget_expense,
         "total_actual_expense": total_actual_expense,
-        "actual_balance": total_actual_income - total_actual_expense,
-        "budget_balance": total_budget_income - total_budget_expense,
+        "total_diff_income": total_actual_income - total_budget_income,
+        "total_diff_expense": total_actual_expense - total_budget_expense,
+        "actual_balance": actual_balance,
+        "budget_balance": budget_balance,
+        "diff_balance": actual_balance - budget_balance,
     })
 
 
