@@ -1,3 +1,4 @@
+{% load accounting_filters %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -24,7 +25,7 @@
         {% if logo_path %}<img src="file://{{ logo_path }}" style="height: 50px;" alt="">{% endif %}
         <div>
             <h1 style="margin-bottom: 2px;">Suivi budgétaire</h1>
-            <h2 style="margin-bottom: 0;">{{ organization.name }} &mdash; Exercice {{ fiscal_year.start_date }} &rarr; {{ fiscal_year.end_date }}</h2>
+            <h2 style="margin-bottom: 0;">{{ organization.name }} &mdash; Exercice {{ fiscal_year.start_date|date:"d/m/Y" }} &rarr; {{ fiscal_year.end_date|date:"d/m/Y" }}</h2>
         </div>
     </div>
 
@@ -43,10 +44,10 @@
             {% for row in income_rows %}
             <tr>
                 <td>{{ row.category.name }}</td>
-                <td class="num">{{ row.planned }} &euro;</td>
-                <td class="num">{{ row.actual }} &euro;</td>
-                <td class="num {% if row.diff >= 0 %}positive{% else %}negative{% endif %}">{{ row.diff }} &euro;</td>
-                <td class="num pct">{% if row.pct != None %}{{ row.pct|floatformat:0 }}%{% else %}&mdash;{% endif %}</td>
+                <td class="num">{{ row.planned|money }} &euro;</td>
+                <td class="num">{{ row.actual|money }} &euro;</td>
+                <td class="num {% if row.diff >= 0 %}positive{% else %}negative{% endif %}">{{ row.diff|money }} &euro;</td>
+                <td class="num pct">{% if row.pct != None %}{{ row.pct|floatformat:0 }} %{% else %}&mdash;{% endif %}</td>
             </tr>
             {% empty %}
             <tr><td colspan="5" style="text-align:center; color:#64748b;">Aucune catégorie de recette</td></tr>
@@ -56,9 +57,9 @@
         <tfoot>
             <tr class="totals">
                 <td>TOTAL RECETTES</td>
-                <td class="num">{{ total_budget_income }} &euro;</td>
-                <td class="num">{{ total_actual_income }} &euro;</td>
-                <td class="num {% if total_diff_income >= 0 %}positive{% else %}negative{% endif %}">{{ total_diff_income }} &euro;</td>
+                <td class="num">{{ total_budget_income|money }} &euro;</td>
+                <td class="num">{{ total_actual_income|money }} &euro;</td>
+                <td class="num {% if total_diff_income >= 0 %}positive{% else %}negative{% endif %}">{{ total_diff_income|money }} &euro;</td>
                 <td></td>
             </tr>
         </tfoot>
@@ -80,10 +81,10 @@
             {% for row in expense_rows %}
             <tr>
                 <td>{{ row.category.name }}</td>
-                <td class="num">{{ row.planned }} &euro;</td>
-                <td class="num">{{ row.actual }} &euro;</td>
-                <td class="num {% if row.diff > 0 %}negative{% elif row.diff < 0 %}positive{% endif %}">{{ row.diff }} &euro;</td>
-                <td class="num pct">{% if row.pct != None %}{{ row.pct|floatformat:0 }}%{% else %}&mdash;{% endif %}</td>
+                <td class="num">{{ row.planned|money }} &euro;</td>
+                <td class="num">{{ row.actual|money }} &euro;</td>
+                <td class="num {% if row.diff > 0 %}negative{% elif row.diff < 0 %}positive{% endif %}">{{ row.diff|money }} &euro;</td>
+                <td class="num pct">{% if row.pct != None %}{{ row.pct|floatformat:0 }} %{% else %}&mdash;{% endif %}</td>
             </tr>
             {% empty %}
             <tr><td colspan="5" style="text-align:center; color:#64748b;">Aucune catégorie de dépense</td></tr>
@@ -93,20 +94,21 @@
         <tfoot>
             <tr class="totals">
                 <td>TOTAL DÉPENSES</td>
-                <td class="num">{{ total_budget_expense }} &euro;</td>
-                <td class="num">{{ total_actual_expense }} &euro;</td>
-                <td class="num {% if total_diff_expense > 0 %}negative{% elif total_diff_expense < 0 %}positive{% endif %}">{{ total_diff_expense }} &euro;</td>
+                <td class="num">{{ total_budget_expense|money }} &euro;</td>
+                <td class="num">{{ total_actual_expense|money }} &euro;</td>
+                <td class="num {% if total_diff_expense > 0 %}negative{% elif total_diff_expense < 0 %}positive{% endif %}">{{ total_diff_expense|money }} &euro;</td>
                 <td></td>
             </tr>
         </tfoot>
         {% endif %}
+    </table>
 
     <table>
         <tfoot>
             <tr class="balance">
                 <td>SOLDE (Recettes - Dépenses)</td>
-                <td class="num">{{ budget_balance }} &euro;</td>
-                <td class="num {% if actual_balance >= 0 %}positive{% else %}negative{% endif %}">{{ actual_balance }} &euro;</td>
+                <td class="num">{{ budget_balance|money }} &euro;</td>
+                <td class="num {% if actual_balance >= 0 %}positive{% else %}negative{% endif %}">{{ actual_balance|money }} &euro;</td>
                 <td></td>
                 <td></td>
             </tr>

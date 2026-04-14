@@ -1,3 +1,4 @@
+{% load accounting_filters %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -22,7 +23,7 @@
         {% if logo_path %}<img src="file://{{ logo_path }}" style="height: 50px;" alt="">{% endif %}
         <div>
             <h1 style="margin-bottom: 2px;">Journal comptable</h1>
-            <h2 style="margin-bottom: 0;">{{ organization.name }} &mdash; Exercice {{ fiscal_year.start_date }} &rarr; {{ fiscal_year.end_date }}</h2>
+            <h2 style="margin-bottom: 0;">{{ organization.name }} &mdash; Exercice {{ fiscal_year.start_date|date:"d/m/Y" }} &rarr; {{ fiscal_year.end_date|date:"d/m/Y" }}</h2>
         </div>
     </div>
 
@@ -39,11 +40,11 @@
         <tbody>
             {% for row in rows %}
             <tr>
-                <td>{{ row.date }}</td>
+                <td>{{ row.date|date:"d/m/Y" }}</td>
                 <td>{{ row.description }}</td>
                 <td>{{ row.category }}</td>
-                <td class="num">{% if row.income %}{{ row.income }} €{% endif %}</td>
-                <td class="num">{% if row.expense %}{{ row.expense }} €{% endif %}</td>
+                <td class="num">{% if row.income %}{{ row.income|money }} &euro;{% endif %}</td>
+                <td class="num">{% if row.expense %}{{ row.expense|money }} &euro;{% endif %}</td>
             </tr>
             {% empty %}
             <tr>
@@ -55,12 +56,12 @@
         <tfoot>
             <tr class="totals">
                 <td colspan="3">TOTAUX</td>
-                <td class="num">{{ total_income }} €</td>
-                <td class="num">{{ total_expense }} €</td>
+                <td class="num">{{ total_income|money }} &euro;</td>
+                <td class="num">{{ total_expense|money }} &euro;</td>
             </tr>
             <tr class="balance">
                 <td colspan="3">SOLDE</td>
-                <td colspan="2" class="num {% if balance >= 0 %}positive{% else %}negative{% endif %}">{{ balance }} €</td>
+                <td colspan="2" class="num {% if balance >= 0 %}positive{% else %}negative{% endif %}">{{ balance|money }} &euro;</td>
             </tr>
         </tfoot>
         {% endif %}

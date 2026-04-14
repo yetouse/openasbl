@@ -1,3 +1,4 @@
+{% load accounting_filters %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -30,7 +31,7 @@
         {% if logo_path %}<img src="file://{{ logo_path }}" style="height: 60px;" alt="">{% endif %}
         <div>
             <h1 style="margin-bottom: 2px;">Comptes annuels</h1>
-            <h2 style="margin-bottom: 0;">{{ organization.name }} &mdash; Exercice {{ fiscal_year.start_date }} &rarr; {{ fiscal_year.end_date }}</h2>
+            <h2 style="margin-bottom: 0;">{{ organization.name }} &mdash; Exercice {{ fiscal_year.start_date|date:"d/m/Y" }} &rarr; {{ fiscal_year.end_date|date:"d/m/Y" }}</h2>
         </div>
     </div>
     <div class="header-info">
@@ -42,15 +43,15 @@
     <div class="summary">
         <div class="summary-card">
             <div class="label">Total recettes</div>
-            <div class="value positive">{{ total_income }} &euro;</div>
+            <div class="value positive">{{ total_income|money }} &euro;</div>
         </div>
         <div class="summary-card">
             <div class="label">Total dépenses</div>
-            <div class="value negative">{{ total_expense }} &euro;</div>
+            <div class="value negative">{{ total_expense|money }} &euro;</div>
         </div>
         <div class="summary-card">
             <div class="label">Résultat</div>
-            <div class="value {% if balance >= 0 %}positive{% else %}negative{% endif %}">{{ balance }} &euro;</div>
+            <div class="value {% if balance >= 0 %}positive{% else %}negative{% endif %}">{{ balance|money }} &euro;</div>
         </div>
     </div>
 
@@ -67,7 +68,7 @@
             {% for row in income_summary %}
             <tr>
                 <td>{{ row.name }}</td>
-                <td class="num">{{ row.total }} &euro;</td>
+                <td class="num">{{ row.total|money }} &euro;</td>
             </tr>
             {% empty %}
             <tr><td colspan="2" style="text-align:center; color:#64748b;">Aucune recette</td></tr>
@@ -76,7 +77,7 @@
         <tfoot>
             <tr class="totals">
                 <td>TOTAL RECETTES</td>
-                <td class="num">{{ total_income }} &euro;</td>
+                <td class="num">{{ total_income|money }} &euro;</td>
             </tr>
         </tfoot>
     </table>
@@ -93,7 +94,7 @@
             {% for row in expense_summary %}
             <tr>
                 <td>{{ row.name }}</td>
-                <td class="num">{{ row.total }} &euro;</td>
+                <td class="num">{{ row.total|money }} &euro;</td>
             </tr>
             {% empty %}
             <tr><td colspan="2" style="text-align:center; color:#64748b;">Aucune dépense</td></tr>
@@ -102,7 +103,7 @@
         <tfoot>
             <tr class="totals">
                 <td>TOTAL DÉPENSES</td>
-                <td class="num">{{ total_expense }} &euro;</td>
+                <td class="num">{{ total_expense|money }} &euro;</td>
             </tr>
         </tfoot>
     </table>
@@ -122,33 +123,33 @@
             <tr class="section-header"><td colspan="{% if opening_snapshot %}3{% else %}2{% endif %}">Actifs</td></tr>
             <tr>
                 <td>Caisse</td>
-                {% if opening_snapshot %}<td class="num">{{ opening_snapshot.cash }} &euro;</td>{% endif %}
-                <td class="num">{{ closing_snapshot.cash }} &euro;</td>
+                {% if opening_snapshot %}<td class="num">{{ opening_snapshot.cash|money }} &euro;</td>{% endif %}
+                <td class="num">{{ closing_snapshot.cash|money }} &euro;</td>
             </tr>
             <tr>
                 <td>Banque</td>
-                {% if opening_snapshot %}<td class="num">{{ opening_snapshot.bank }} &euro;</td>{% endif %}
-                <td class="num">{{ closing_snapshot.bank }} &euro;</td>
+                {% if opening_snapshot %}<td class="num">{{ opening_snapshot.bank|money }} &euro;</td>{% endif %}
+                <td class="num">{{ closing_snapshot.bank|money }} &euro;</td>
             </tr>
             <tr>
                 <td>Créances</td>
-                {% if opening_snapshot %}<td class="num">{{ opening_snapshot.receivables }} &euro;</td>{% endif %}
-                <td class="num">{{ closing_snapshot.receivables }} &euro;</td>
+                {% if opening_snapshot %}<td class="num">{{ opening_snapshot.receivables|money }} &euro;</td>{% endif %}
+                <td class="num">{{ closing_snapshot.receivables|money }} &euro;</td>
             </tr>
             <tr class="section-header"><td colspan="{% if opening_snapshot %}3{% else %}2{% endif %}">Passifs</td></tr>
             <tr>
                 <td>Dettes</td>
-                {% if opening_snapshot %}<td class="num">{{ opening_snapshot.debts }} &euro;</td>{% endif %}
-                <td class="num">{{ closing_snapshot.debts }} &euro;</td>
+                {% if opening_snapshot %}<td class="num">{{ opening_snapshot.debts|money }} &euro;</td>{% endif %}
+                <td class="num">{{ closing_snapshot.debts|money }} &euro;</td>
             </tr>
         </tbody>
         <tfoot>
             <tr class="net-worth">
                 <td>Valeur nette</td>
                 {% if opening_snapshot %}
-                <td class="num {% if opening_snapshot.net_worth >= 0 %}positive{% else %}negative{% endif %}">{{ opening_snapshot.net_worth }} &euro;</td>
+                <td class="num {% if opening_snapshot.net_worth >= 0 %}positive{% else %}negative{% endif %}">{{ opening_snapshot.net_worth|money }} &euro;</td>
                 {% endif %}
-                <td class="num {% if closing_snapshot.net_worth >= 0 %}positive{% else %}negative{% endif %}">{{ closing_snapshot.net_worth }} &euro;</td>
+                <td class="num {% if closing_snapshot.net_worth >= 0 %}positive{% else %}negative{% endif %}">{{ closing_snapshot.net_worth|money }} &euro;</td>
             </tr>
         </tfoot>
     </table>
@@ -172,11 +173,11 @@
         <tbody>
             {% for entry in entries %}
             <tr>
-                <td>{{ entry.date }}</td>
+                <td>{{ entry.date|date:"d/m/Y" }}</td>
                 <td>{{ entry.description }}</td>
                 <td>{{ entry.category.name }}</td>
-                <td class="num">{% if entry.entry_type == "income" %}{{ entry.amount }} &euro;{% endif %}</td>
-                <td class="num">{% if entry.entry_type == "expense" %}{{ entry.amount }} &euro;{% endif %}</td>
+                <td class="num">{% if entry.entry_type == "income" %}{{ entry.amount|money }} &euro;{% endif %}</td>
+                <td class="num">{% if entry.entry_type == "expense" %}{{ entry.amount|money }} &euro;{% endif %}</td>
             </tr>
             {% empty %}
             <tr><td colspan="5" style="text-align:center; color:#64748b;">Aucune écriture</td></tr>
@@ -186,8 +187,8 @@
         <tfoot>
             <tr class="totals">
                 <td colspan="3">TOTAUX</td>
-                <td class="num">{{ total_income }} &euro;</td>
-                <td class="num">{{ total_expense }} &euro;</td>
+                <td class="num">{{ total_income|money }} &euro;</td>
+                <td class="num">{{ total_expense|money }} &euro;</td>
             </tr>
         </tfoot>
         {% endif %}
