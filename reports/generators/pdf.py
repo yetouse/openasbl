@@ -189,6 +189,9 @@ def generate_budget_tracking_pdf(fiscal_year):
             total_budget_expense += planned
             total_actual_expense += actual
 
+    actual_balance = total_actual_income - total_actual_expense
+    budget_balance = total_budget_income - total_budget_expense
+
     context = {
         "fiscal_year": fiscal_year,
         "organization": org,
@@ -201,8 +204,9 @@ def generate_budget_tracking_pdf(fiscal_year):
         "total_budget_expense": total_budget_expense,
         "total_actual_expense": total_actual_expense,
         "total_diff_expense": total_actual_expense - total_budget_expense,
-        "budget_balance": total_budget_income - total_budget_expense,
-        "actual_balance": total_actual_income - total_actual_expense,
+        "budget_balance": budget_balance,
+        "actual_balance": actual_balance,
+        "diff_balance": actual_balance - budget_balance,
     }
     html_string = render_to_string("reports/budget_tracking_pdf.html", context)
     return HTML(string=html_string).write_pdf()
