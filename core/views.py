@@ -1,11 +1,16 @@
+from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
+
 from accounts.decorators import require_permission
 from accounts.models import PermissionLevel, UserProfile
 from accounting.seed import seed_categories
-from core.forms import OrganizationForm, SetupWizardForm
+from core.backup import generate_export_zip, restore_from_zip, validate_import_zip
+from core.forms import ImportForm, OrganizationForm, SetupWizardForm
 from core.models import Organization
 
 
@@ -50,3 +55,43 @@ def organization_settings(request):
     else:
         form = OrganizationForm(instance=org)
     return render(request, "core/organization_settings.html", {"form": form})
+
+
+@login_required
+@require_permission(PermissionLevel.ADMIN)
+def export_data(request):
+    """Download a full backup ZIP."""
+    try:
+        zip_bytes = generate_export_zip()
+    except ValueError as e:
+        messages.error(request, str(e))
+        return redirect("core:organization_settings")
+
+    org = Organization.objects.first()
+    timestamp = timezone.now().strftime("%Y%m%d_%H%M")
+    filename = f"openasbl_backup_{timestamp}.zip"
+
+    response = HttpResponse(zip_bytes, content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+@login_required
+@require_permission(PermissionLevel.ADMIN)
+def import_data(request):
+    """Upload and restore a backup ZIP."""
+    if request.method == "POST":
+        form = ImportForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                data, zip_bytes = validate_import_zip(request.FILES["file"])
+                restore_from_zip(zip_bytes)
+                messages.success(request, "Données restaurées avec succès.")
+                return redirect("accounting:dashboard")
+            except ValueError as e:
+                messages.error(request, str(e))
+            except Exception as e:
+                messages.error(request, f"Erreur lors de la restauration : {e}")
+    else:
+        form = ImportForm()
+    return render(request, "core/import_data.html", {"form": form})
