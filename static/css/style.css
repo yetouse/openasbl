@@ -83,7 +83,7 @@ select {
 }
 
 .navbar-logo {
-    height: 54px;
+    height: 110px;
     width: auto;
     position: relative;
     z-index: 1031;
@@ -92,6 +92,6 @@ select {
 
 @media (max-width: 991.98px) {
     .navbar-logo {
-        height: 44px;
+        height: 80px;
     }
 }
