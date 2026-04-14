@@ -1,10 +1,16 @@
-# OpenASBL
+<p align="center">
+  <img src="static/img/logo-openasbl.png" alt="OpenASBL" width="200">
+</p>
 
-Comptabilité simplifiée pour les petites ASBL belges non assujetties à la TVA.
+<h1 align="center">OpenASBL</h1>
 
-![Python](https://img.shields.io/badge/Python-3.12+-blue)
-![Django](https://img.shields.io/badge/Django-5.x-green)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+<p align="center">Comptabilité simplifiée pour les petites ASBL belges non assujetties à la TVA.</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.12+-blue" alt="Python">
+  <img src="https://img.shields.io/badge/Django-5.x-green" alt="Django">
+  <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License">
+</p>
 
 ## Présentation
 
