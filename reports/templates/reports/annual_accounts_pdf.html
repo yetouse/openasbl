@@ -5,139 +5,135 @@
     <meta charset="utf-8">
     <title>Comptes annuels</title>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; color: #1e293b; line-height: 1.4; margin: 20px; }
-        h1 { font-size: 20px; margin-bottom: 4px; }
-        h2 { font-size: 14px; color: #64748b; margin-bottom: 16px; font-weight: 400; }
-        h3 { font-size: 14px; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 4px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-        th, td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; text-align: left; }
-        th { background: #f8fafc; font-weight: 600; font-size: 10px; text-transform: uppercase; }
-        .num { text-align: right; }
-        .positive { color: #16a34a; }
-        .negative { color: #dc2626; }
-        .totals td { font-weight: 700; border-top: 2px solid #1e293b; }
-        .section-header td { font-weight: 700; background: #f1f5f9; }
-        .net-worth td { font-weight: 700; border-top: 2px solid #1e293b; font-size: 13px; }
-        .summary { display: flex; gap: 24px; margin-bottom: 16px; }
-        .summary-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; min-width: 140px; }
-        .summary-card .label { font-size: 10px; text-transform: uppercase; color: #64748b; }
-        .summary-card .value { font-size: 16px; font-weight: 700; margin-top: 4px; }
+        @page { size: A4; margin: 15mm 15mm 12mm 15mm; }
+        body { font-family: system-ui, -apple-system, sans-serif; font-size: 10px; color: #1e293b; line-height: 1.3; margin: 0; }
+        .header { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+        .header-info { flex: 1; }
+        .header h1 { font-size: 16px; margin: 0 0 2px 0; }
+        .header h2 { font-size: 11px; color: #64748b; margin: 0; font-weight: 400; }
+        .header-meta { font-size: 9px; color: #64748b; margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        th, td { padding: 3px 8px; border: 1px solid #cbd5e1; }
+        th { background: #1e3a5f; color: white; font-weight: 600; font-size: 9px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .num { text-align: right; font-variant-numeric: tabular-nums; }
+        .section-income td { background: #dcfce7; font-weight: 700; font-size: 10px; border-top: 2px solid #1e3a5f; }
+        .section-expense td { background: #fee2e2; font-weight: 700; font-size: 10px; border-top: 2px solid #1e3a5f; }
+        .section-actif td { background: #dcfce7; font-weight: 700; font-size: 10px; border-top: 2px solid #1e3a5f; }
+        .section-passif td { background: #fee2e2; font-weight: 700; font-size: 10px; border-top: 2px solid #1e3a5f; }
+        .cat-row td { padding-left: 14px; }
+        .cat-row:nth-child(even) td { background: #f8fafc; }
+        .totals td { font-weight: 700; background: #f1f5f9; border-top: 2px solid #475569; }
+        .balance td { font-weight: 700; font-size: 12px; background: #1e3a5f; color: white; border: none; }
+        .balance .positive { color: #86efac; }
+        .balance .negative { color: #fca5a5; }
+        .net-worth td { font-weight: 700; font-size: 11px; background: #1e3a5f; color: white; border: none; }
+        .net-worth .positive { color: #86efac; }
+        .net-worth .negative { color: #fca5a5; }
+        .spacer td { height: 3px; padding: 0; border: none; background: transparent; }
+        h3 { font-size: 12px; margin: 14px 0 6px 0; color: #1e3a5f; border-bottom: 2px solid #1e3a5f; padding-bottom: 3px; }
+        .row-even td { background: #f8fafc; }
+        .income { color: #16a34a; }
+        .expense { color: #dc2626; }
         .page-break { page-break-before: always; }
-        .header-info { font-size: 10px; color: #64748b; margin-bottom: 20px; }
+        .footer { margin-top: 10px; font-size: 8px; color: #94a3b8; text-align: center; }
     </style>
 </head>
 <body>
-    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
-        {% if logo_path %}<img src="file://{{ logo_path }}" style="height: 60px;" alt="">{% endif %}
-        <div>
-            <h1 style="margin-bottom: 2px;">Comptes annuels</h1>
-            <h2 style="margin-bottom: 0;">{{ organization.name }} &mdash; Exercice {{ fiscal_year.start_date|date:"d/m/Y" }} &rarr; {{ fiscal_year.end_date|date:"d/m/Y" }}</h2>
+    <div class="header">
+        {% if logo_path %}<img src="file://{{ logo_path }}" style="height: 50px;" alt="">{% endif %}
+        <div class="header-info">
+            <h1>{{ organization.name }}</h1>
+            <h2>{% if organization.address %}{{ organization.address }}{% endif %}</h2>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 16px; font-weight: 700; color: #1e3a5f;">Comptes annuels</div>
+            <div style="font-size: 10px; color: #64748b;">Exercice {{ fiscal_year.start_date|date:"d/m/Y" }} &rarr; {{ fiscal_year.end_date|date:"d/m/Y" }}</div>
         </div>
     </div>
-    <div class="header-info">
-        {% if organization.address %}{{ organization.address }}<br>{% endif %}
+    <div class="header-meta">
         {% if organization.enterprise_number %}N&deg; entreprise : {{ organization.enterprise_number }}{% endif %}
     </div>
 
-    <!-- Résumé -->
-    <div class="summary">
-        <div class="summary-card">
-            <div class="label">Total recettes</div>
-            <div class="value positive">{{ total_income|money }} &euro;</div>
-        </div>
-        <div class="summary-card">
-            <div class="label">Total dépenses</div>
-            <div class="value negative">{{ total_expense|money }} &euro;</div>
-        </div>
-        <div class="summary-card">
-            <div class="label">Résultat</div>
-            <div class="value {% if balance >= 0 %}positive{% else %}negative{% endif %}">{{ balance|money }} &euro;</div>
-        </div>
-    </div>
-
-    <!-- Ventilation par catégorie -->
-    <h3>I. Recettes par catégorie</h3>
+    <!-- I. État des recettes et dépenses -->
+    <h3>I. État des recettes et dépenses</h3>
     <table>
         <thead>
             <tr>
-                <th>Catégorie</th>
-                <th class="num">Montant</th>
+                <th style="text-align: left; width: 60%;">Catégorie</th>
+                <th class="num" style="width: 40%;">Montant</th>
             </tr>
         </thead>
         <tbody>
+            <tr class="section-income"><td colspan="2">RECETTES</td></tr>
             {% for row in income_summary %}
-            <tr>
+            <tr class="cat-row">
                 <td>{{ row.name }}</td>
                 <td class="num">{{ row.total|money }} &euro;</td>
             </tr>
             {% empty %}
             <tr><td colspan="2" style="text-align:center; color:#64748b;">Aucune recette</td></tr>
             {% endfor %}
-        </tbody>
-        <tfoot>
             <tr class="totals">
                 <td>TOTAL RECETTES</td>
                 <td class="num">{{ total_income|money }} &euro;</td>
             </tr>
-        </tfoot>
-    </table>
 
-    <h3>II. Dépenses par catégorie</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Catégorie</th>
-                <th class="num">Montant</th>
-            </tr>
-        </thead>
-        <tbody>
+            <tr class="spacer"><td colspan="2"></td></tr>
+
+            <tr class="section-expense"><td colspan="2">DÉPENSES</td></tr>
             {% for row in expense_summary %}
-            <tr>
+            <tr class="cat-row">
                 <td>{{ row.name }}</td>
                 <td class="num">{{ row.total|money }} &euro;</td>
             </tr>
             {% empty %}
             <tr><td colspan="2" style="text-align:center; color:#64748b;">Aucune dépense</td></tr>
             {% endfor %}
-        </tbody>
-        <tfoot>
             <tr class="totals">
                 <td>TOTAL DÉPENSES</td>
                 <td class="num">{{ total_expense|money }} &euro;</td>
             </tr>
-        </tfoot>
+
+            <tr class="spacer"><td colspan="2"></td></tr>
+
+            <tr class="balance">
+                <td>RÉSULTAT DE L'EXERCICE</td>
+                <td class="num {% if balance >= 0 %}positive{% else %}negative{% endif %}">{{ balance|money }} &euro;</td>
+            </tr>
+        </tbody>
     </table>
 
-    <!-- État du patrimoine -->
-    <h3>III. État du patrimoine</h3>
+    <!-- II. État du patrimoine -->
+    <h3>II. État du patrimoine</h3>
     {% if closing_snapshot %}
+    <p style="color:#64748b; margin-bottom: 6px; font-size: 9px;">Relevé au {{ closing_snapshot.date|date:"d/m/Y" }}</p>
     <table style="max-width: 500px;">
         <thead>
             <tr>
-                <th>Poste</th>
+                <th style="text-align: left;">Poste</th>
                 {% if opening_snapshot %}<th class="num">Début exercice</th>{% endif %}
                 <th class="num">Fin exercice</th>
             </tr>
         </thead>
         <tbody>
-            <tr class="section-header"><td colspan="{% if opening_snapshot %}3{% else %}2{% endif %}">Actifs</td></tr>
-            <tr>
+            <tr class="section-actif"><td colspan="{% if opening_snapshot %}3{% else %}2{% endif %}">ACTIFS</td></tr>
+            <tr class="cat-row">
                 <td>Caisse</td>
                 {% if opening_snapshot %}<td class="num">{{ opening_snapshot.cash|money }} &euro;</td>{% endif %}
                 <td class="num">{{ closing_snapshot.cash|money }} &euro;</td>
             </tr>
-            <tr>
+            <tr class="cat-row">
                 <td>Banque</td>
                 {% if opening_snapshot %}<td class="num">{{ opening_snapshot.bank|money }} &euro;</td>{% endif %}
                 <td class="num">{{ closing_snapshot.bank|money }} &euro;</td>
             </tr>
-            <tr>
+            <tr class="cat-row">
                 <td>Créances</td>
                 {% if opening_snapshot %}<td class="num">{{ opening_snapshot.receivables|money }} &euro;</td>{% endif %}
                 <td class="num">{{ closing_snapshot.receivables|money }} &euro;</td>
             </tr>
-            <tr class="section-header"><td colspan="{% if opening_snapshot %}3{% else %}2{% endif %}">Passifs</td></tr>
-            <tr>
+            <tr class="section-passif"><td colspan="{% if opening_snapshot %}3{% else %}2{% endif %}">PASSIFS</td></tr>
+            <tr class="cat-row">
                 <td>Dettes</td>
                 {% if opening_snapshot %}<td class="num">{{ opening_snapshot.debts|money }} &euro;</td>{% endif %}
                 <td class="num">{{ closing_snapshot.debts|money }} &euro;</td>
@@ -145,7 +141,7 @@
         </tbody>
         <tfoot>
             <tr class="net-worth">
-                <td>Valeur nette</td>
+                <td>VALEUR NETTE</td>
                 {% if opening_snapshot %}
                 <td class="num {% if opening_snapshot.net_worth >= 0 %}positive{% else %}negative{% endif %}">{{ opening_snapshot.net_worth|money }} &euro;</td>
                 {% endif %}
@@ -157,27 +153,27 @@
     <p style="color:#64748b;">Aucun relevé de patrimoine disponible pour cet exercice.</p>
     {% endif %}
 
-    <!-- Journal détaillé -->
+    <!-- III. Journal détaillé -->
     <div class="page-break"></div>
-    <h3>IV. Journal des recettes et dépenses</h3>
+    <h3>III. Journal des recettes et dépenses</h3>
     <table>
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Catégorie</th>
-                <th class="num">Recette</th>
-                <th class="num">Dépense</th>
+                <th style="width: 12%;">Date</th>
+                <th style="width: 35%;">Description</th>
+                <th style="width: 20%;">Catégorie</th>
+                <th class="num" style="width: 15%;">Recette</th>
+                <th class="num" style="width: 15%;">Dépense</th>
             </tr>
         </thead>
         <tbody>
             {% for entry in entries %}
-            <tr>
+            <tr{% if forloop.counter|divisibleby:2 %} class="row-even"{% endif %}>
                 <td>{{ entry.date|date:"d/m/Y" }}</td>
                 <td>{{ entry.description }}</td>
                 <td>{{ entry.category.name }}</td>
-                <td class="num">{% if entry.entry_type == "income" %}{{ entry.amount|money }} &euro;{% endif %}</td>
-                <td class="num">{% if entry.entry_type == "expense" %}{{ entry.amount|money }} &euro;{% endif %}</td>
+                <td class="num income">{% if entry.entry_type == "income" %}{{ entry.amount|money }}{% endif %}</td>
+                <td class="num expense">{% if entry.entry_type == "expense" %}{{ entry.amount|money }}{% endif %}</td>
             </tr>
             {% empty %}
             <tr><td colspan="5" style="text-align:center; color:#64748b;">Aucune écriture</td></tr>
@@ -193,5 +189,7 @@
         </tfoot>
         {% endif %}
     </table>
+
+    <p class="footer">Document généré par OpenASBL &mdash; {{ organization.name }}</p>
 </body>
 </html>

@@ -5,102 +5,107 @@
     <meta charset="utf-8">
     <title>Comparaison par exercice</title>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; color: #1e293b; line-height: 1.4; margin: 20px; }
-        h1 { font-size: 18px; margin-bottom: 4px; }
-        h2 { font-size: 14px; color: #64748b; margin-bottom: 16px; font-weight: 400; }
-        h3 { font-size: 13px; margin-top: 20px; margin-bottom: 8px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-        th, td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; text-align: left; }
-        th { background: #f8fafc; font-weight: 600; font-size: 10px; text-transform: uppercase; }
-        .num { text-align: right; }
-        .positive { color: #16a34a; }
-        .negative { color: #dc2626; }
-        .totals td { font-weight: 700; border-top: 2px solid #1e293b; }
-        .balance td { font-weight: 700; font-size: 12px; border-top: 2px solid #1e293b; }
+        @page { size: A4 landscape; margin: 15mm 15mm 12mm 15mm; }
+        body { font-family: system-ui, -apple-system, sans-serif; font-size: 10px; color: #1e293b; line-height: 1.3; margin: 0; }
+        .header { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+        .header-info { flex: 1; }
+        .header h1 { font-size: 16px; margin: 0 0 2px 0; }
+        .header h2 { font-size: 11px; color: #64748b; margin: 0; font-weight: 400; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 3px 8px; border: 1px solid #cbd5e1; }
+        th { background: #1e3a5f; color: white; font-weight: 600; font-size: 9px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .num { text-align: right; font-variant-numeric: tabular-nums; }
+        .section-income td { background: #dcfce7; font-weight: 700; font-size: 10px; border-top: 2px solid #1e3a5f; }
+        .section-expense td { background: #fee2e2; font-weight: 700; font-size: 10px; border-top: 2px solid #1e3a5f; }
+        .cat-row td { padding-left: 14px; }
+        .cat-row:nth-child(even) td { background: #f8fafc; }
+        .totals td { font-weight: 700; background: #f1f5f9; border-top: 2px solid #475569; }
+        .balance td { font-weight: 700; font-size: 11px; background: #1e3a5f; color: white; border: none; }
+        .balance .positive { color: #86efac; }
+        .balance .negative { color: #fca5a5; }
+        .spacer td { height: 3px; padding: 0; border: none; background: transparent; }
+        .footer { margin-top: 10px; font-size: 8px; color: #94a3b8; text-align: center; }
     </style>
 </head>
 <body>
-    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
-        {% if logo_path %}<img src="file://{{ logo_path }}" style="height: 50px;" alt="">{% endif %}
-        <div>
-            <h1 style="margin-bottom: 2px;">Comparaison par exercice</h1>
-            {% if organization %}<h2 style="margin-bottom: 0;">{{ organization.name }}</h2>{% endif %}
+    <div class="header">
+        {% if logo_path %}<img src="file://{{ logo_path }}" style="height: 45px;" alt="">{% endif %}
+        <div class="header-info">
+            <h1>{% if organization %}{{ organization.name }}{% endif %}</h1>
+            <h2>{% if organization and organization.address %}{{ organization.address }}{% endif %}</h2>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 15px; font-weight: 700; color: #1e3a5f;">Comparaison par exercice</div>
+            <div style="font-size: 10px; color: #64748b;">{{ fy_data|length }} exercice{{ fy_data|length|pluralize:"s" }}</div>
         </div>
     </div>
 
-    <h3>Recettes</h3>
     <table>
         <thead>
             <tr>
-                <th>Catégorie</th>
+                <th style="text-align: left;">Catégorie</th>
                 {% for fd in fy_data %}
                 <th class="num">{{ fd.fiscal_year.start_date|date:"Y" }}</th>
                 {% endfor %}
             </tr>
         </thead>
         <tbody>
+            <!-- RECETTES -->
+            <tr class="section-income">
+                <td colspan="{{ fy_data|length|add:1 }}">RECETTES</td>
+            </tr>
             {% for row in income_rows %}
-            <tr>
+            <tr class="cat-row">
                 <td>{{ row.name }}</td>
                 {% for amount in row.amounts %}
-                <td class="num">{% if amount %}{{ amount|money }} &euro;{% else %}&mdash;{% endif %}</td>
+                <td class="num">{% if amount %}{{ amount|money }}{% else %}&mdash;{% endif %}</td>
                 {% endfor %}
             </tr>
             {% empty %}
-            <tr><td colspan="99" style="text-align:center; color:#64748b;">Aucune recette</td></tr>
+            <tr><td colspan="{{ fy_data|length|add:1 }}" style="text-align:center; color:#64748b;">Aucune recette</td></tr>
             {% endfor %}
-        </tbody>
-        <tfoot>
             <tr class="totals">
                 <td>TOTAL RECETTES</td>
                 {% for fd in fy_data %}
-                <td class="num">{{ fd.total_income|money }} &euro;</td>
+                <td class="num">{{ fd.total_income|money }}</td>
                 {% endfor %}
             </tr>
-        </tfoot>
-    </table>
 
-    <h3>Dépenses</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Catégorie</th>
-                {% for fd in fy_data %}
-                <th class="num">{{ fd.fiscal_year.start_date|date:"Y" }}</th>
-                {% endfor %}
+            <tr class="spacer"><td colspan="{{ fy_data|length|add:1 }}"></td></tr>
+
+            <!-- DÉPENSES -->
+            <tr class="section-expense">
+                <td colspan="{{ fy_data|length|add:1 }}">DÉPENSES</td>
             </tr>
-        </thead>
-        <tbody>
             {% for row in expense_rows %}
-            <tr>
+            <tr class="cat-row">
                 <td>{{ row.name }}</td>
                 {% for amount in row.amounts %}
-                <td class="num">{% if amount %}{{ amount|money }} &euro;{% else %}&mdash;{% endif %}</td>
+                <td class="num">{% if amount %}{{ amount|money }}{% else %}&mdash;{% endif %}</td>
                 {% endfor %}
             </tr>
             {% empty %}
-            <tr><td colspan="99" style="text-align:center; color:#64748b;">Aucune dépense</td></tr>
+            <tr><td colspan="{{ fy_data|length|add:1 }}" style="text-align:center; color:#64748b;">Aucune dépense</td></tr>
             {% endfor %}
-        </tbody>
-        <tfoot>
             <tr class="totals">
                 <td>TOTAL DÉPENSES</td>
                 {% for fd in fy_data %}
-                <td class="num">{{ fd.total_expense|money }} &euro;</td>
+                <td class="num">{{ fd.total_expense|money }}</td>
                 {% endfor %}
             </tr>
-        </tfoot>
-    </table>
 
-    <table>
-        <tfoot>
+            <tr class="spacer"><td colspan="{{ fy_data|length|add:1 }}"></td></tr>
+
+            <!-- SOLDE -->
             <tr class="balance">
                 <td>SOLDE</td>
                 {% for fd in fy_data %}
                 <td class="num {% if fd.balance >= 0 %}positive{% else %}negative{% endif %}">{{ fd.balance|money }} &euro;</td>
                 {% endfor %}
             </tr>
-        </tfoot>
+        </tbody>
     </table>
+
+    <p class="footer">Document généré par OpenASBL &mdash; {% if organization %}{{ organization.name }}{% endif %}</p>
 </body>
 </html>
