@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Importer des données — OpenASBL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="card-title h4 mb-4">{% trans "Restaurer une sauvegarde" %}</h1>
+
+                <div class="alert alert-warning">
+                    <strong>{% trans "Attention" %}</strong> —
+                    {% trans "L'importation remplacera toutes les données existantes (organisation, exercices, écritures, catégories, budgets, patrimoine). Cette opération est irréversible." %}
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_file" class="form-label">{{ form.file.label }}</label>
+                        {{ form.file }}
+                        {% if form.file.errors %}
+                        <div class="text-danger small mt-1">{{ form.file.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">{% trans "Sélectionnez un fichier .zip généré par l'export OpenASBL." %}</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr ? Toutes les données actuelles seront remplacées.');">
+                            {% trans "Restaurer" %}
+                        </button>
+                        <a href="{% url 'core:organization_settings' %}" class="btn btn-outline-secondary">{% trans "Annuler" %}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

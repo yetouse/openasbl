@@ -19,3 +19,7 @@ class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
         fields = ("name", "address", "enterprise_number", "email", "phone", "logo")
+
+
+class ImportForm(forms.Form):
+    file = forms.FileField(label="Fichier de sauvegarde (.zip)")
