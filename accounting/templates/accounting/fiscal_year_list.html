@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Exercices comptables — OpenASBL{% endblock %}
+
+{% block content %}
+<h1>{% trans "Exercices comptables" %}</h1>
+<a href="{% url 'accounting:fiscal_year_create' %}" class="btn btn-primary">Nouvel exercice</a>
+<table style="margin-top: var(--space);">
+    <thead>
+        <tr><th>{% trans "Période" %}</th><th>{% trans "Statut" %}</th><th>{% trans "Actions" %}</th></tr>
+    </thead>
+    <tbody>
+        {% for fy in fiscal_years %}
+        <tr>
+            <td>{{ fy }}</td>
+            <td>{{ fy.get_status_display }}</td>
+            <td>
+                {% if fy.status == "open" %}
+                <a href="{% url 'accounting:budget_create' fy.pk %}">Budget</a>
+                <a href="{% url 'accounting:asset_snapshot_create' fy.pk %}">Patrimoine</a>
+                <a href="{% url 'accounting:fiscal_year_close' fy.pk %}" class="btn btn-danger">Clôturer</a>
+                {% endif %}
+                <a href="{% url 'accounting:entry_list' %}?fiscal_year={{ fy.pk }}">Écritures</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="text-muted">Aucun exercice.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

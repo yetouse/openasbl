@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Clôturer l'exercice — OpenASBL{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px;">
+    <h1>{% trans "Clôturer l'exercice" %}</h1>
+    <p>Êtes-vous sûr de vouloir clôturer l'exercice <strong>{{ fiscal_year }}</strong> ?</p>
+    <p class="text-danger">Cette action est irréversible. Aucune écriture ne pourra être ajoutée après la clôture.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Confirmer la clôture</button>
+        <a href="{% url 'accounting:fiscal_year_list' %}" class="btn">Annuler</a>
+    </form>
+</div>
+{% endblock %}
