@@ -27,6 +27,7 @@ Développée initialement pour le [Royal Cercle de Voile de Dave](https://www.ro
 - **Budget prévisionnel** — Planification par catégorie avec saisie en masse et copie depuis l'exercice précédent
 - **Suivi budgétaire** — Comparaison budget vs réalisé avec barres de progression
 - **État du patrimoine** — Relevé des actifs (caisse, banque, créances) et passifs (dettes)
+- **Scan de tickets (OCR)** — Photographiez un ticket de caisse et créez automatiquement l'écriture comptable (Tesseract)
 
 ### Rapports
 - **Journal comptable** (PDF, Excel, CSV)
@@ -57,6 +58,7 @@ Développée initialement pour le [Royal Cercle de Voile de Dave](https://www.ro
 | Frontend | Django Templates, HTMX 2.x, Bootstrap 5.3 |
 | PDF | WeasyPrint |
 | Excel | openpyxl |
+| OCR | Tesseract, pytesseract, Pillow |
 | Fichiers statiques | WhiteNoise |
 | Déploiement | Gunicorn + Nginx |
 
@@ -66,6 +68,7 @@ Développée initialement pour le [Royal Cercle de Voile de Dave](https://www.ro
 
 - Python 3.12+
 - pip
+- Tesseract OCR (pour le scan de tickets) : `sudo apt install tesseract-ocr tesseract-ocr-fra`
 
 ### Mise en place
 
@@ -94,7 +97,7 @@ python manage.py seed_categories
 ## Tests
 
 ```bash
-python manage.py test                    # tous les tests (164)
+python manage.py test                    # tous les tests (198)
 python manage.py test accounting         # tests du module comptabilité
 python manage.py test accounting.tests.test_models  # un module spécifique
 ```

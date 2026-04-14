@@ -4,3 +4,5 @@ whitenoise>=6.6
 weasyprint>=61
 openpyxl>=3.1
 gunicorn>=21
+Pillow>=10.0
+pytesseract>=0.3.10

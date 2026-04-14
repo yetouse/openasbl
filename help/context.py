@@ -140,6 +140,23 @@ HELP_TEXTS = {
         "et les paramètres<br><br>"
         "Chaque niveau inclut les droits des niveaux inférieurs."
     ),
+    "scan_ticket": (
+        "<strong>Scanner un ticket</strong><br><br>"
+        "Photographiez ou importez l'image d'un ticket de caisse, d'une facture "
+        "ou d'un reçu. L'application extrait automatiquement les informations "
+        "grâce à la reconnaissance de texte (OCR).<br><br>"
+        "<strong>Comment faire :</strong><br>"
+        "1. Cliquez sur le bouton pour prendre une photo ou sélectionner une image<br>"
+        "2. Cliquez sur « Analyser le ticket »<br>"
+        "3. Vérifiez et corrigez les données extraites (montant, date, description)<br>"
+        "4. Choisissez la catégorie appropriée<br>"
+        "5. Cliquez sur « Enregistrer »<br><br>"
+        "<strong>Conseils pour de meilleurs résultats :</strong><br>"
+        "- Assurez-vous que le ticket est bien éclairé et lisible<br>"
+        "- Évitez les reflets et les ombres<br>"
+        "- Cadrez le ticket entier dans l'image<br>"
+        "- Les formats JPG et PNG sont acceptés"
+    ),
 }
 
 
