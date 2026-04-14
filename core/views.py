@@ -43,7 +43,7 @@ def setup_wizard(request):
 def organization_settings(request):
     org = request.user.profile.organization
     if request.method == "POST":
-        form = OrganizationForm(request.POST, instance=org)
+        form = OrganizationForm(request.POST, request.FILES, instance=org)
         if form.is_valid():
             form.save()
             return redirect("core:organization_settings")

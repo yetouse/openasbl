@@ -18,4 +18,4 @@ class SetupWizardForm(forms.Form):
 class OrganizationForm(forms.ModelForm):
     class Meta:
         model = Organization
-        fields = ("name", "address", "enterprise_number", "email", "phone")
+        fields = ("name", "address", "enterprise_number", "email", "phone", "logo")
