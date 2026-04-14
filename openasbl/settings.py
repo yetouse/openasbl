@@ -38,6 +38,7 @@ MIDDLEWARE = [
     "django_htmx.middleware.HtmxMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "accounts.middleware.SetupRequiredMiddleware",
 ]
 
 ROOT_URLCONF = "openasbl.urls"

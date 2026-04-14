@@ -1,11 +1,23 @@
 {% load i18n %}
 <nav>
-    <a href="/">OpenASBL</a>
+    <a href="{% url 'accounting:dashboard' %}"><strong>OpenASBL</strong></a>
     {% if user.is_authenticated %}
-        {% url 'accounting:entry_list' as entry_url %}
-        {% if entry_url %}<a href="{{ entry_url }}">{% trans "Écritures" %}</a>{% endif %}
-        {% url 'reports:report_select' as reports_url %}
-        {% if reports_url %}<a href="{{ reports_url }}">{% trans "Rapports" %}</a>{% endif %}
-        <a href="{% url 'accounts:logout' %}">{% trans "Déconnexion" %}</a>
+        <a href="{% url 'accounting:dashboard' %}">{% trans "Tableau de bord" %}</a>
+        <a href="{% url 'accounting:entry_list' %}">{% trans "Écritures" %}</a>
+        <a href="{% url 'accounting:fiscal_year_list' %}">{% trans "Exercices" %}</a>
+        <a href="{% url 'accounting:category_list' %}">{% trans "Catégories" %}</a>
+        <a href="{% url 'reports:report_select' %}">{% trans "Rapports" %}</a>
+        {% if user.profile.can_manage_users %}
+        <a href="{% url 'accounts:user_list' %}">{% trans "Utilisateurs" %}</a>
+        <a href="{% url 'core:organization_settings' %}">{% trans "Paramètres" %}</a>
+        {% endif %}
+        <div style="margin-left: auto;">
+            <span class="text-muted">{{ user.get_full_name|default:user.username }}</span>
+            <form method="post" action="{% url 'accounts:logout' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn">{% trans "Déconnexion" %}</button>
+            </form>
+        </div>
     {% endif %}
 </nav>
+<div id="help-panel"></div>
