@@ -3,11 +3,11 @@
 {% block title %}Rapports — OpenASBL{% endblock %}
 
 {% block content %}
-<h1>Rapports</h1>
+<h1 class="h3 mb-4">Rapports</h1>
 
-<div style="margin: 1rem 0;">
-    <label for="fy-select" style="font-weight: 600;">Exercice comptable :</label>
-    <select id="fy-select" style="padding: 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius);">
+<div class="mb-4">
+    <label for="fy-select" class="form-label fw-semibold">Exercice comptable :</label>
+    <select id="fy-select" class="form-select" style="max-width: 300px;">
         {% for fy in fiscal_years %}
         <option value="{{ fy.pk }}" data-start="{{ fy.start_date.year }}" data-end="{{ fy.end_date.year }}">{{ fy }}</option>
         {% empty %}
@@ -16,69 +16,67 @@
     </select>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem;">
+<div class="row g-4">
 
     <!-- Journal -->
-    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.25rem;">
-        <h2 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Journal comptable</h2>
-        <p style="color: var(--color-muted); font-size: 0.9rem; margin-bottom: 1rem;">Toutes les écritures de l'exercice avec totaux.</p>
-        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            <a id="journal-pdf" class="btn" href="#">PDF</a>
-            <a id="journal-excel" class="btn" href="#">Excel</a>
-            <a id="journal-csv" class="btn" href="#">CSV</a>
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="card-title h6">Journal comptable</h2>
+                <p class="text-muted small">Toutes les écritures de l'exercice avec totaux.</p>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a id="journal-pdf" class="btn btn-primary btn-sm" href="#">PDF</a>
+                    <a id="journal-excel" class="btn btn-primary btn-sm" href="#">Excel</a>
+                    <a id="journal-csv" class="btn btn-primary btn-sm" href="#">CSV</a>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Patrimoine -->
-    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.25rem;">
-        <h2 style="font-size: 1.1rem; margin-bottom: 0.5rem;">État du patrimoine</h2>
-        <p style="color: var(--color-muted); font-size: 0.9rem; margin-bottom: 1rem;">Actifs, dettes et valeur nette.</p>
-        <div style="display: flex; gap: 0.5rem;">
-            <a id="patrimony-pdf" class="btn" href="#">PDF</a>
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="card-title h6">État du patrimoine</h2>
+                <p class="text-muted small">Actifs, dettes et valeur nette.</p>
+                <div class="d-flex gap-2">
+                    <a id="patrimony-pdf" class="btn btn-primary btn-sm" href="#">PDF</a>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Rapport mensuel CA -->
-    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.25rem;">
-        <h2 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Rapport mensuel CA</h2>
-        <p style="color: var(--color-muted); font-size: 0.9rem; margin-bottom: 0.75rem;">Résumé mensuel pour le conseil d'administration.</p>
-        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center;">
-            <select id="month-select" style="padding: 0.4rem; border: 1px solid var(--color-border); border-radius: var(--radius);">
-                <option value="1">Janvier</option>
-                <option value="2">Février</option>
-                <option value="3">Mars</option>
-                <option value="4">Avril</option>
-                <option value="5">Mai</option>
-                <option value="6">Juin</option>
-                <option value="7">Juillet</option>
-                <option value="8">Août</option>
-                <option value="9">Septembre</option>
-                <option value="10">Octobre</option>
-                <option value="11">Novembre</option>
-                <option value="12">Décembre</option>
-            </select>
-            <select id="year-select" style="padding: 0.4rem; border: 1px solid var(--color-border); border-radius: var(--radius);"></select>
-        </div>
-        <div style="display: flex; gap: 0.5rem;">
-            <a id="monthly-ca-pdf" class="btn" href="#">PDF</a>
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="card-title h6">Rapport mensuel CA</h2>
+                <p class="text-muted small">Résumé mensuel pour le conseil d'administration.</p>
+                <div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
+                    <select id="month-select" class="form-select form-select-sm" style="width: auto;">
+                        <option value="1">Janvier</option>
+                        <option value="2">Février</option>
+                        <option value="3">Mars</option>
+                        <option value="4">Avril</option>
+                        <option value="5">Mai</option>
+                        <option value="6">Juin</option>
+                        <option value="7">Juillet</option>
+                        <option value="8">Août</option>
+                        <option value="9">Septembre</option>
+                        <option value="10">Octobre</option>
+                        <option value="11">Novembre</option>
+                        <option value="12">Décembre</option>
+                    </select>
+                    <select id="year-select" class="form-select form-select-sm" style="width: auto;"></select>
+                </div>
+                <div class="d-flex gap-2">
+                    <a id="monthly-ca-pdf" class="btn btn-primary btn-sm" href="#">PDF</a>
+                </div>
+            </div>
         </div>
     </div>
 
 </div>
-
-<style>
-    .btn {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        background: var(--color-primary);
-        color: #fff;
-        text-decoration: none;
-        border-radius: var(--radius);
-        font-size: 0.875rem;
-        font-weight: 500;
-    }
-    .btn:hover { opacity: 0.9; }
-</style>
 
 <script>
 (function() {
@@ -103,7 +101,6 @@
     function updateLinks() {
         const fy = fySelect.value;
         if (!fy) return;
-        const base = '{% url "reports:journal_pdf" %}';
         document.getElementById('journal-pdf').href = '{% url "reports:journal_pdf" %}?fiscal_year=' + fy;
         document.getElementById('journal-excel').href = '{% url "reports:journal_excel" %}?fiscal_year=' + fy;
         document.getElementById('journal-csv').href = '{% url "reports:journal_csv" %}?fiscal_year=' + fy;

@@ -4,19 +4,27 @@
 {% block title %}{{ title }} — OpenASBL{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 600px;">
-    <h1>{{ title }}</h1>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {% for field in form %}
-        <div class="form-group">
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}<p class="text-danger">{{ field.errors.0 }}</p>{% endif %}
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="card-title h4 mb-4">{{ title }}</h1>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+                    </div>
+                    {% endfor %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">Enregistrer</button>
+                        <a href="{% url 'accounting:entry_list' %}" class="btn btn-secondary">Annuler</a>
+                    </div>
+                </form>
+            </div>
         </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-success">Enregistrer</button>
-        <a href="{% url 'accounting:entry_list' %}" class="btn">Annuler</a>
-    </form>
+    </div>
 </div>
 {% endblock %}
