@@ -87,7 +87,16 @@
             {% for entry in entries %}
             <tr>
                 <td>{{ entry.date }}</td>
-                <td>{{ entry.description }}</td>
+                <td>
+                    {{ entry.description }}
+                    {% if entry.attachment %}
+                    <a href="{% url 'accounting:attachment_download' entry.pk %}" class="ms-1 text-muted" title="Télécharger le justificatif">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z"/>
+                        </svg>
+                    </a>
+                    {% endif %}
+                </td>
                 <td><span class="badge {% if entry.entry_type == 'income' %}bg-success{% else %}bg-danger{% endif %}">{{ entry.category.name }}</span></td>
                 <td class="text-end {% if entry.entry_type == 'income' %}text-success{% else %}text-danger{% endif %} fw-bold">
                     {% if entry.entry_type == 'expense' %}-{% endif %}{{ entry.amount|money }} &euro;
