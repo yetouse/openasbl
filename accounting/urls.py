@@ -20,4 +20,5 @@ urlpatterns = [
     path("categories/<int:pk>/delete/", views.category_delete, name="category_delete"),
     path("documents/", views.document_list, name="document_list"),
     path("entries/<int:pk>/attachment/", views.attachment_download, name="attachment_download"),
+    path("scan/", views.scan_ticket, name="scan_ticket"),
 ]

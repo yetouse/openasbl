@@ -1,3 +1,4 @@
+import datetime
 import json
 import mimetypes
 from collections import defaultdict
@@ -12,6 +13,7 @@ from accounts.decorators import require_permission
 from accounts.models import PermissionLevel
 from accounting.forms import AssetSnapshotForm, CategoryForm, EntryForm, FiscalYearForm
 from accounting.models import AssetSnapshot, Budget, Category, CategoryType, Entry, FiscalYear, FiscalYearStatus
+from accounting.ocr import extract_from_image
 
 
 def _monthly_data(fiscal_year):
@@ -527,3 +529,93 @@ def attachment_download(request, pk):
     filename = entry.attachment.name.split("/")[-1]
     content_type, _ = mimetypes.guess_type(filename)
     return FileResponse(f, content_type=content_type or "application/octet-stream", filename=filename)
+
+
+@login_required
+@require_permission(PermissionLevel.GESTION)
+def scan_ticket(request):
+    """Scan a receipt/ticket image and create an entry from OCR data."""
+    org = request.user.profile.organization
+    open_fy = FiscalYear.objects.filter(organization=org, status="open").first()
+
+    if not open_fy:
+        messages.error(request, "Aucun exercice ouvert. Créez ou ouvrez un exercice avant de scanner un ticket.")
+        return redirect("accounting:fiscal_year_list")
+
+    if request.method == "POST":
+        # Step 2: form submission — create entry
+        if "amount" in request.POST:
+            form = EntryForm(request.POST, request.FILES)
+            form.fields["fiscal_year"].queryset = FiscalYear.objects.filter(organization=org, status="open")
+            form.fields["category"].queryset = org.categories.all()
+            if form.is_valid():
+                entry = form.save(commit=False)
+                entry.created_by = request.user
+                # Attach the scanned image if no new file was uploaded
+                temp_path = request.POST.get("temp_image_path", "")
+                if not entry.attachment and temp_path:
+                    from django.core.files.storage import default_storage
+                    if default_storage.exists(temp_path):
+                        from django.core.files import File
+                        filename = temp_path.split("/")[-1]
+                        entry.attachment.save(filename, default_storage.open(temp_path), save=False)
+                        default_storage.delete(temp_path)
+                entry.full_clean()
+                entry.save()
+                messages.success(request, "Écriture créée à partir du ticket scanné.")
+                if "scan_another" in request.POST:
+                    return redirect("accounting:scan_ticket")
+                return redirect("accounting:entry_list")
+            return render(request, "accounting/scan_ticket.html", {
+                "step": "verify",
+                "form": form,
+                "temp_image_path": request.POST.get("temp_image_path", ""),
+            })
+
+        # Step 1: image upload — run OCR
+        image = request.FILES.get("ticket_image")
+        if not image:
+            messages.error(request, "Veuillez sélectionner une image.")
+            return render(request, "accounting/scan_ticket.html", {"step": "upload"})
+
+        # Validate image type
+        if not image.content_type.startswith("image/"):
+            messages.error(request, "Le fichier doit être une image (JPG, PNG, etc.).")
+            return render(request, "accounting/scan_ticket.html", {"step": "upload"})
+
+        try:
+            data = extract_from_image(image)
+        except RuntimeError as e:
+            messages.error(request, str(e))
+            return render(request, "accounting/scan_ticket.html", {"step": "upload"})
+
+        # Store uploaded image in session temp path for later attachment
+        image.seek(0)
+        from django.core.files.storage import default_storage
+        temp_path = default_storage.save(f"scan_temp/{image.name}", image)
+
+        # Pre-fill the entry form with OCR data
+        expense_cats = org.categories.filter(category_type=CategoryType.EXPENSE)
+        initial = {
+            "fiscal_year": open_fy.pk,
+            "date": data["date"] or datetime.date.today(),
+            "amount": data["amount"] or "",
+            "description": data["description"] or "",
+            "category": expense_cats.first().pk if expense_cats.exists() else None,
+        }
+        form = EntryForm(initial=initial)
+        form.fields["fiscal_year"].queryset = FiscalYear.objects.filter(organization=org, status="open")
+        form.fields["category"].queryset = org.categories.all()
+
+        ocr_warning = not data["amount"] or not data["date"]
+
+        return render(request, "accounting/scan_ticket.html", {
+            "step": "verify",
+            "form": form,
+            "raw_text": data["raw_text"],
+            "ocr_warning": ocr_warning,
+            "temp_image_path": temp_path,
+        })
+
+    # GET: show upload form
+    return render(request, "accounting/scan_ticket.html", {"step": "upload"})
