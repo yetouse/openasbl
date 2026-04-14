@@ -8,3 +8,4 @@ staticfiles/
 media/
 *.log
 hostinger.json
+.vscode/
