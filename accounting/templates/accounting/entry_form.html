@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} — OpenASBL{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px;">
+    <h1>{{ title }}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<p class="text-danger">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-success">Enregistrer</button>
+        <a href="{% url 'accounting:entry_list' %}" class="btn">Annuler</a>
+    </form>
+</div>
+{% endblock %}

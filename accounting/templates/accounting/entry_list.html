@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Ecritures — OpenASBL{% endblock %}
+
+{% block content %}
+<h1>{% trans "Ecritures" %}</h1>
+<div style="margin-bottom: var(--space);">
+    <form method="get" style="display: inline-flex; gap: 0.5rem; align-items: center;">
+        <select name="fiscal_year" onchange="this.form.submit()">
+            <option value="">Tous les exercices</option>
+            {% for fy in fiscal_years %}
+            <option value="{{ fy.pk }}" {% if selected_fy == fy.pk|stringformat:"d" %}selected{% endif %}>{{ fy }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <a href="{% url 'accounting:entry_create' %}" class="btn btn-primary">Nouvelle ecriture</a>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>{% trans "Date" %}</th>
+            <th>{% trans "Description" %}</th>
+            <th>{% trans "Categorie" %}</th>
+            <th>{% trans "Montant" %}</th>
+            <th>{% trans "Actions" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in entries %}
+        <tr>
+            <td>{{ entry.date }}</td>
+            <td>{{ entry.description }}</td>
+            <td>{{ entry.category.name }}</td>
+            <td class="{% if entry.entry_type == 'income' %}amount-positive{% else %}amount-negative{% endif %}">
+                {% if entry.entry_type == 'expense' %}-{% endif %}{{ entry.amount }} &euro;
+            </td>
+            <td>
+                <a href="{% url 'accounting:entry_edit' entry.pk %}">Modifier</a>
+                <form method="post" action="{% url 'accounting:entry_delete' entry.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Supprimer cette ecriture ?')">Supprimer</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-muted">Aucune ecriture.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
