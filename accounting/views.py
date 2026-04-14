@@ -134,6 +134,34 @@ def category_create(request):
         form = CategoryForm()
     return render(request, "accounting/entry_form.html", {"form": form, "title": "Nouvelle catégorie"})
 
+
+@login_required
+@require_permission(PermissionLevel.GESTION)
+def category_edit(request, pk):
+    cat = get_object_or_404(Category, pk=pk)
+    if request.method == "POST":
+        form = CategoryForm(request.POST, instance=cat)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Catégorie modifiée.")
+            return redirect("accounting:category_list")
+    else:
+        form = CategoryForm(instance=cat)
+    return render(request, "accounting/entry_form.html", {"form": form, "title": "Modifier la catégorie"})
+
+
+@login_required
+@require_permission(PermissionLevel.GESTION)
+def category_delete(request, pk):
+    cat = get_object_or_404(Category, pk=pk)
+    if request.method == "POST":
+        if cat.entries.exists():
+            messages.error(request, "Impossible de supprimer une catégorie utilisée par des écritures.")
+        else:
+            cat.delete()
+            messages.success(request, "Catégorie supprimée.")
+    return redirect("accounting:category_list")
+
 @login_required
 @require_permission(PermissionLevel.GESTION)
 def budget_create(request, fiscal_year_pk):
