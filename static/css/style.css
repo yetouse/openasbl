@@ -80,6 +80,15 @@ select {
     overflow: visible;
     position: relative;
     z-index: 1030;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+.navbar-brand {
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: -20px;
+    margin-bottom: -20px;
 }
 
 .navbar-logo {
@@ -93,5 +102,9 @@ select {
 @media (max-width: 991.98px) {
     .navbar-logo {
         height: 80px;
+    }
+    .navbar-brand {
+        margin-top: -15px;
+        margin-bottom: -15px;
     }
 }
