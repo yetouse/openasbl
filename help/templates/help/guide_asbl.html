@@ -1,0 +1,524 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Guide comptable ASBL — OpenASBL{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-4">
+    <h1 class="h3 mb-0">{% trans "Guide comptable pour ASBL" %}</h1>
+</div>
+
+<div class="alert alert-info mb-4">
+    <strong>Ce guide s'adresse aux petites ASBL belges non assujetties à la TVA.</strong>
+    Il résume les obligations légales et les bonnes pratiques. Pour les cas spécifiques,
+    consultez un comptable ou le SPF Justice.
+</div>
+
+<!-- Navigation rapide -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h2 class="h5 mb-3">Sommaire</h2>
+        <div class="row g-2">
+            <div class="col-md-6">
+                <ul class="list-unstyled mb-0">
+                    <li><a href="#glossaire" class="text-decoration-none">1. Glossaire des termes comptables</a></li>
+                    <li><a href="#obligations" class="text-decoration-none">2. Vos obligations légales</a></li>
+                    <li><a href="#documents" class="text-decoration-none">3. Documents à produire</a></li>
+                    <li><a href="#destinataires" class="text-decoration-none">4. Qui reçoit quoi ?</a></li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <ul class="list-unstyled mb-0">
+                    <li><a href="#calendrier" class="text-decoration-none">5. Calendrier des échéances</a></li>
+                    <li><a href="#a-faire" class="text-decoration-none">6. Les bonnes pratiques</a></li>
+                    <li><a href="#erreurs" class="text-decoration-none">7. Erreurs courantes à éviter</a></li>
+                    <li><a href="#references" class="text-decoration-none">8. Références légales</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 1. Glossaire -->
+<div class="card shadow-sm mb-4" id="glossaire">
+    <div class="card-body">
+        <h2 class="h5 mb-3">1. Glossaire des termes comptables</h2>
+        <p class="text-muted mb-3">Les termes essentiels expliqués simplement.</p>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead class="table-light">
+                    <tr><th style="width: 25%;">Terme</th><th>Explication</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Recettes</strong></td>
+                        <td>Tout l'argent qui <strong>entre</strong> dans l'ASBL : cotisations des membres, dons, subsides, ventes lors d'événements, inscriptions aux activités...</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dépenses</strong></td>
+                        <td>Tout l'argent qui <strong>sort</strong> de l'ASBL : achats de matériel, loyers, assurances, frais bancaires, honoraires...</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Exercice comptable</strong></td>
+                        <td>La période couverte par les comptes, généralement <strong>12 mois</strong> (souvent du 1er janvier au 31 décembre). Toutes les écritures se rattachent à un exercice.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Solde</strong></td>
+                        <td>La différence entre les recettes et les dépenses. Si positif, c'est un <strong>excédent</strong> ; si négatif, c'est un <strong>déficit</strong>.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Patrimoine</strong></td>
+                        <td>L'ensemble de ce que possède et de ce que doit l'ASBL à un moment donné.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Actif</strong></td>
+                        <td>Ce que l'ASBL <strong>possède</strong> ou ce qu'on lui doit : argent en banque, espèces en caisse, matériel, créances (cotisations dues non encore payées).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Passif</strong></td>
+                        <td>Ce que l'ASBL <strong>doit</strong> à d'autres : emprunts, factures fournisseurs impayées, dettes diverses.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Patrimoine net</strong></td>
+                        <td>Actif moins Passif = la « richesse nette » de l'ASBL.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Budget</strong></td>
+                        <td>Prévision des recettes et dépenses pour l'exercice <strong>à venir</strong>. Il doit être voté par l'assemblée générale.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Journal</strong></td>
+                        <td>Registre chronologique de <strong>toutes</strong> les opérations financières (chaque recette, chaque dépense).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pièce justificative</strong></td>
+                        <td>Document qui prouve une opération : facture, ticket de caisse, reçu, extrait de compte bancaire. À conserver <strong>7 ans</strong>.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Comptes annuels</strong></td>
+                        <td>Le document officiel récapitulant toute l'activité financière de l'exercice. Pour les petites ASBL : état des recettes/dépenses + état du patrimoine.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Décharge</strong></td>
+                        <td>Vote de l'assemblée générale qui approuve la gestion des administrateurs pour l'exercice écoulé et les libère de leur responsabilité.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Assemblée générale (AG)</strong></td>
+                        <td>Réunion annuelle de tous les membres, qui approuve les comptes, le budget et donne décharge aux administrateurs.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cotisations</strong></td>
+                        <td>Contributions financières annuelles payées par les membres de l'ASBL.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Subsides</strong></td>
+                        <td>Aides financières reçues de pouvoirs publics (commune, province, Région wallonne, Fédération Wallonie-Bruxelles) ou d'organismes tiers.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Obligations légales -->
+<div class="card shadow-sm mb-4" id="obligations">
+    <div class="card-body">
+        <h2 class="h5 mb-3">2. Vos obligations légales</h2>
+
+        <h3 class="h6 mt-3">Êtes-vous une « petite ASBL » ?</h3>
+        <p>Votre ASBL est <strong>petite</strong> si elle ne dépasse <strong>pas plus d'un</strong> des seuils suivants :</p>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+                <thead class="table-light">
+                    <tr><th>Critère</th><th>Seuil</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Nombre de travailleurs (moyenne annuelle)</td><td><strong>50</strong></td></tr>
+                    <tr><td>Chiffre d'affaires annuel (hors TVA)</td><td><strong>9 000 000 €</strong></td></tr>
+                    <tr><td>Total du bilan</td><td><strong>4 500 000 €</strong></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted small">La grande majorité des clubs sportifs, associations culturelles et petites ASBL locales sont bien en dessous de ces seuils.</p>
+
+        <h3 class="h6 mt-4">Comptabilité simplifiée</h3>
+        <p>En tant que petite ASBL, vous bénéficiez de la <strong>comptabilité simplifiée</strong> (art. 3:47 §2 du CSA). Concrètement :</p>
+        <ul>
+            <li><strong>Pas de comptabilité en partie double</strong> (pas de débit/crédit complexe)</li>
+            <li>Un simple <strong>journal des recettes et dépenses</strong> suffit</li>
+            <li>Les opérations sont classées par <strong>catégories</strong> (cotisations, achats, loyers...)</li>
+            <li>Un <strong>état du patrimoine</strong> en fin d'exercice (ce qu'on a, ce qu'on doit)</li>
+        </ul>
+        <div class="alert alert-success mt-3">
+            <strong>Bonne nouvelle :</strong> OpenASBL fait exactement cela pour vous ! Le journal, les catégories, l'état du patrimoine et les comptes annuels sont générés automatiquement.
+        </div>
+    </div>
+</div>
+
+<!-- 3. Documents à produire -->
+<div class="card shadow-sm mb-4" id="documents">
+    <div class="card-body">
+        <h2 class="h5 mb-3">3. Documents à produire</h2>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card border-primary h-100">
+                    <div class="card-header bg-primary text-white">
+                        <strong>Comptes annuels</strong> <span class="badge bg-danger ms-2">Obligatoire</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="small">Le document officiel de fin d'exercice comprenant :</p>
+                        <ul class="small mb-0">
+                            <li><strong>État des recettes et dépenses</strong> — toutes les opérations de l'exercice classées par catégorie</li>
+                            <li><strong>État du patrimoine</strong> — photo de la situation financière à la date de clôture</li>
+                            <li><strong>Annexes</strong> — informations complémentaires</li>
+                        </ul>
+                        <p class="small text-muted mt-2 mb-0">Dans OpenASBL : <strong>Rapports → Comptes annuels</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-primary h-100">
+                    <div class="card-header bg-primary text-white">
+                        <strong>Budget prévisionnel</strong> <span class="badge bg-danger ms-2">Obligatoire</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="small">Prévision des recettes et dépenses pour l'exercice <strong>suivant</strong>.</p>
+                        <ul class="small mb-0">
+                            <li>Doit être voté par l'assemblée générale</li>
+                            <li>Catégorie par catégorie (cotisations prévues, achats prévus...)</li>
+                            <li>Permet de comparer le prévu au réalisé en cours d'année</li>
+                        </ul>
+                        <p class="small text-muted mt-2 mb-0">Dans OpenASBL : <strong>Exercices → Budget</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-warning h-100">
+                    <div class="card-header bg-warning">
+                        <strong>Journal comptable</strong> <span class="badge bg-secondary ms-2">Recommandé</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="small">Liste chronologique de toutes les opérations. C'est la base de votre comptabilité.</p>
+                        <ul class="small mb-0">
+                            <li>Chaque écriture renvoie à une pièce justificative numérotée</li>
+                            <li>Exportable en PDF, Excel ou CSV</li>
+                        </ul>
+                        <p class="small text-muted mt-2 mb-0">Dans OpenASBL : <strong>Rapports → Journal comptable</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-warning h-100">
+                    <div class="card-header bg-warning">
+                        <strong>Rapport pour le CA</strong> <span class="badge bg-secondary ms-2">Recommandé</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="small">Synthèse mensuelle ou trimestrielle pour le conseil d'administration.</p>
+                        <ul class="small mb-0">
+                            <li>Vue rapide des recettes, dépenses et solde du mois</li>
+                            <li>Utile pour suivre la santé financière entre deux AG</li>
+                        </ul>
+                        <p class="small text-muted mt-2 mb-0">Dans OpenASBL : <strong>Rapports → Rapport mensuel CA</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Qui reçoit quoi -->
+<div class="card shadow-sm mb-4" id="destinataires">
+    <div class="card-body">
+        <h2 class="h5 mb-3">4. Qui reçoit quoi ?</h2>
+
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Destinataire</th>
+                        <th>Document</th>
+                        <th>Quand</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Assemblée générale</strong></td>
+                        <td>
+                            Comptes annuels<br>
+                            Budget de l'exercice suivant<br>
+                            Rapport du vérificateur (s'il y en a un)
+                        </td>
+                        <td>Lors de l'AG ordinaire<br><span class="text-muted small">(dans les 6 mois après la clôture)</span></td>
+                        <td>Présentation + vote d'approbation + vote de décharge aux administrateurs</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Greffe du Tribunal de l'Entreprise</strong></td>
+                        <td>
+                            Comptes annuels approuvés<br>
+                            <span class="text-muted small">(état des recettes/dépenses + patrimoine)</span>
+                        </td>
+                        <td><strong>Dans les 30 jours</strong> suivant l'approbation par l'AG</td>
+                        <td>Dépôt au greffe du tribunal du ressort du siège social<br><span class="text-muted small">(Namur pour la plupart des ASBL wallonnes)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>SPF Finances</strong></td>
+                        <td>
+                            Déclaration à l'impôt des personnes morales (IPM)
+                        </td>
+                        <td>Selon le délai fixé par le SPF Finances<br><span class="text-muted small">(généralement sept.-oct. pour un exercice clôturé au 31/12)</span></td>
+                        <td>Via MyMinfin / Biztax</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Moniteur Belge</strong></td>
+                        <td>
+                            <span class="text-muted">Pas les comptes annuels !</span><br>
+                            Uniquement : modifications de statuts, nominations/démissions d'administrateurs
+                        </td>
+                        <td>Dans les 30 jours suivant la décision</td>
+                        <td>Via le greffe du tribunal</td>
+                    </tr>
+                    <tr class="table-light">
+                        <td><strong>Banque Nationale (BNB)</strong></td>
+                        <td colspan="3" class="text-muted">
+                            <strong>Ne concerne PAS les petites ASBL.</strong> Seules les grandes ASBL (comptabilité en partie double) déposent leurs comptes à la Centrale des bilans de la BNB.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Administration subsidiante</strong><br><span class="text-muted small">(Région wallonne, commune...)</span></td>
+                        <td>
+                            Justification financière des subsides<br>
+                            <span class="text-muted small">(comptes, factures, rapport d'activité)</span>
+                        </td>
+                        <td>Selon les conditions du subside<br><span class="text-muted small">(souvent annuellement)</span></td>
+                        <td>Selon les formulaires de l'administration concernée</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 5. Calendrier -->
+<div class="card shadow-sm mb-4" id="calendrier">
+    <div class="card-body">
+        <h2 class="h5 mb-3">5. Calendrier des échéances</h2>
+        <p class="text-muted">Pour un exercice du 1er janvier au 31 décembre :</p>
+
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead class="table-light">
+                    <tr><th style="width: 20%;">Période</th><th>Action</th><th style="width: 25%;">Dans OpenASBL</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Toute l'année</strong></td>
+                        <td>Enregistrer chaque recette et dépense, conserver les pièces justificatives</td>
+                        <td>Écritures → Nouvelle écriture</td>
+                    </tr>
+                    <tr>
+                        <td><strong>31 décembre</strong></td>
+                        <td>Fin de l'exercice comptable — relever le patrimoine (caisse, banque, créances, dettes)</td>
+                        <td>Exercices → État du patrimoine</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Janvier - Février</strong></td>
+                        <td>Préparer les comptes annuels et le budget de l'exercice suivant</td>
+                        <td>Rapports → Comptes annuels<br>Exercices → Budget</td>
+                    </tr>
+                    <tr class="table-warning">
+                        <td><strong>Avant le 30 juin</strong></td>
+                        <td>
+                            <strong>Assemblée générale ordinaire :</strong><br>
+                            — Présenter et faire approuver les comptes annuels<br>
+                            — Faire voter le budget<br>
+                            — Faire voter la décharge aux administrateurs
+                        </td>
+                        <td>Imprimer les rapports PDF pour l'AG</td>
+                    </tr>
+                    <tr class="table-danger">
+                        <td><strong>Dans les 30 jours après l'AG</strong></td>
+                        <td><strong>Déposer les comptes annuels au greffe du Tribunal de l'Entreprise</strong></td>
+                        <td>Rapports → Comptes annuels (PDF)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sept. - Oct.</strong></td>
+                        <td>Rentrer la déclaration à l'impôt des personnes morales (IPM)</td>
+                        <td><span class="text-muted">En dehors d'OpenASBL (MyMinfin)</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 6. Bonnes pratiques -->
+<div class="card shadow-sm mb-4" id="a-faire">
+    <div class="card-body">
+        <h2 class="h5 mb-3">6. Les bonnes pratiques</h2>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <h3 class="h6 text-success">A faire</h3>
+                <ul>
+                    <li>Encoder les écritures <strong>régulièrement</strong> (au moins une fois par mois, idéalement chaque semaine)</li>
+                    <li>Conserver <strong>toutes les pièces justificatives</strong> (factures, tickets, extraits de compte) pendant <strong>7 ans</strong></li>
+                    <li>Avoir un <strong>compte bancaire propre</strong> à l'ASBL, séparé des comptes personnels</li>
+                    <li>Numéroter vos pièces justificatives et les relier aux écritures</li>
+                    <li>Préparer un <strong>budget réaliste</strong> en début d'exercice</li>
+                    <li>Suivre le budget <strong>en cours d'année</strong> (pas seulement en fin d'exercice)</li>
+                    <li>Présenter un <strong>rapport financier</strong> à chaque réunion du CA</li>
+                    <li>Vérifier que le solde comptable correspond aux <strong>extraits bancaires</strong></li>
+                    <li>Préparer l'AG bien <strong>à l'avance</strong> (pas la veille !)</li>
+                    <li>Faire relire les comptes par un <strong>vérificateur</strong> (même bénévole)</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h3 class="h6 text-danger">A ne pas faire</h3>
+                <ul>
+                    <li><strong>Ne pas tenir de comptabilité</strong> — même une toute petite ASBL y est obligée</li>
+                    <li><strong>Mélanger comptes perso et ASBL</strong> — c'est l'erreur la plus fréquente et la plus risquée</li>
+                    <li><strong>Jeter les justificatifs</strong> — la conservation pendant 7 ans est obligatoire</li>
+                    <li><strong>Oublier le dépôt au greffe</strong> — le non-dépôt peut entraîner la dissolution judiciaire de l'ASBL</li>
+                    <li><strong>Dépasser le délai de 6 mois</strong> pour l'AG — c'est une obligation légale</li>
+                    <li><strong>Oublier la décharge</strong> — sans vote de décharge, les administrateurs restent personnellement responsables</li>
+                    <li><strong>Confondre « pas de TVA » et « pas d'impôt »</strong> — l'ASBL doit quand même rentrer une déclaration IPM</li>
+                    <li><strong>Négliger le budget</strong> — il est obligatoire et doit être voté par l'AG</li>
+                    <li><strong>Attendre la fin d'année</strong> pour tout encoder — risque d'oublis et de pièces perdues</li>
+                    <li><strong>Oublier les justifications de subsides</strong> — si vous recevez des subsides wallons, les conditions de justification sont strictes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 7. Erreurs courantes -->
+<div class="card shadow-sm mb-4" id="erreurs">
+    <div class="card-body">
+        <h2 class="h5 mb-3">7. Erreurs courantes à éviter</h2>
+
+        <div class="accordion" id="errorsAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#err1">
+                        « On n'a pas besoin de comptabilité, on est tout petit »
+                    </button>
+                </h2>
+                <div id="err1" class="accordion-collapse collapse" data-bs-parent="#errorsAccordion">
+                    <div class="accordion-body">
+                        <strong>Faux.</strong> Depuis le Code des Sociétés et des Associations (CSA, 2019), <strong>toute ASBL</strong> doit tenir une comptabilité, quelle que soit sa taille. Pour les petites ASBL, c'est une comptabilité simplifiée (recettes/dépenses + patrimoine), mais elle est obligatoire. Le non-respect peut entraîner la dissolution judiciaire (art. 2:113 CSA).
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#err2">
+                        « On n'est pas assujetti à la TVA, donc on ne paie pas d'impôts »
+                    </button>
+                </h2>
+                <div id="err2" class="accordion-collapse collapse" data-bs-parent="#errorsAccordion">
+                    <div class="accordion-body">
+                        <strong>Attention !</strong> Ne pas être assujetti à la TVA ne signifie pas être exempté de tout impôt. L'ASBL est soumise à l'<strong>impôt des personnes morales (IPM)</strong> et doit rentrer une déclaration annuelle au SPF Finances. L'IPM taxe notamment les revenus immobiliers, certains revenus de capitaux et les plus-values. La déclaration se fait via MyMinfin/Biztax.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#err3">
+                        « Le trésorier peut utiliser son compte perso pour l'ASBL »
+                    </button>
+                </h2>
+                <div id="err3" class="accordion-collapse collapse" data-bs-parent="#errorsAccordion">
+                    <div class="accordion-body">
+                        <strong>Très déconseillé.</strong> Mélanger les comptes personnels et ceux de l'ASBL est la source de nombreux problèmes : opacité des comptes, difficulté de justification en cas de contrôle, risque de confusion lors de l'AG. L'ASBL doit avoir <strong>son propre compte bancaire</strong> ouvert à son nom.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#err4">
+                        « On dépose nos comptes à la Banque Nationale (BNB) »
+                    </button>
+                </h2>
+                <div id="err4" class="accordion-collapse collapse" data-bs-parent="#errorsAccordion">
+                    <div class="accordion-body">
+                        <strong>Non.</strong> Le dépôt à la Centrale des bilans de la BNB ne concerne que les <strong>grandes ASBL</strong> (comptabilité en partie double). Les petites ASBL déposent leurs comptes annuels au <strong>greffe du Tribunal de l'Entreprise</strong> de leur ressort. Pour la plupart des ASBL wallonnes, c'est le greffe de Namur, Liège, Mons ou Charleroi selon le siège social.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#err5">
+                        « On a reçu un subside, on peut l'utiliser librement »
+                    </button>
+                </h2>
+                <div id="err5" class="accordion-collapse collapse" data-bs-parent="#errorsAccordion">
+                    <div class="accordion-body">
+                        <strong>Pas toujours.</strong> Les subsides de la Région wallonne, des communes ou d'autres pouvoirs publics sont souvent soumis à des <strong>conditions d'utilisation strictes</strong>. Vous devrez généralement fournir une justification financière détaillée (factures, preuves de paiement) et un rapport d'activité. Conservez soigneusement toutes les pièces liées aux dépenses financées par subside.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 8. Références légales -->
+<div class="card shadow-sm mb-4" id="references">
+    <div class="card-body">
+        <h2 class="h5 mb-3">8. Références légales</h2>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead class="table-light">
+                    <tr><th style="width: 35%;">Texte</th><th>Objet</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>CSA art. 1:28</strong></td>
+                        <td>Définition des petites ASBL (seuils)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CSA art. 3:47 §2</strong></td>
+                        <td>Comptabilité simplifiée des petites ASBL</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CSA art. 3:51</strong></td>
+                        <td>Contenu des comptes annuels</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CSA art. 2:9 §1, 8°</strong></td>
+                        <td>Obligation de dépôt des comptes au greffe (30 jours après AG)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CSA art. 9:1 et 9:12</strong></td>
+                        <td>Compétences de l'AG et délai de tenue (6 mois après clôture)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CSA art. 3:98</strong></td>
+                        <td>Commissaire aux comptes (grandes ASBL uniquement)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CSA art. 2:113</strong></td>
+                        <td>Dissolution judiciaire pour non-dépôt des comptes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>AR du 29 avril 2019</strong></td>
+                        <td>Modèles de comptes annuels pour associations</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Code de droit économique, art. III.86</strong></td>
+                        <td>Conservation des pièces justificatives (7 ans)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="alert alert-warning mt-3 mb-0">
+            <strong>Avertissement :</strong> Ce guide est fourni à titre informatif et ne constitue pas un avis juridique. Les références se basent sur le Code des Sociétés et des Associations (CSA, 2019). En cas de doute, consultez un comptable ou un conseiller juridique spécialisé en droit des ASBL.
+        </div>
+    </div>
+</div>
+
+<div class="text-center mb-4">
+    <a href="{% url 'accounting:dashboard' %}" class="btn btn-primary">Retour au tableau de bord</a>
+</div>
+{% endblock %}
