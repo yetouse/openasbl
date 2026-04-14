@@ -14,5 +14,6 @@ urlpatterns = [
     path("budget-tracking/excel/", views.budget_tracking_excel, name="budget_tracking_excel"),
     path("annual-accounts/pdf/", views.annual_accounts_pdf, name="annual_accounts_pdf"),
     path("annual-accounts/excel/", views.annual_accounts_excel, name="annual_accounts_excel"),
+    path("annual-accounts/xbrl/", views.annual_accounts_xbrl, name="annual_accounts_xbrl"),
     path("year-comparison/pdf/", views.year_comparison_pdf, name="year_comparison_pdf"),
 ]

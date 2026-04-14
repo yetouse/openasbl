@@ -31,6 +31,7 @@ Développée initialement pour le [Royal Cercle de Voile de Dave](https://www.ro
 ### Rapports
 - **Journal comptable** (PDF, Excel, CSV)
 - **Comptes annuels** (PDF, Excel) — Document légal avec résumé, ventilation, patrimoine et journal
+- **Export XBRL (BNB)** — Fichier XBRL pour dépôt électronique à la Banque Nationale de Belgique (modèle micro m08)
 - **Suivi budgétaire** (PDF, Excel) — Budget vs réalisé par catégorie
 - **Rapport mensuel CA** (PDF) — Synthèse pour le conseil d'administration
 - **Comparaison par exercice** (PDF) — Évolution sur plusieurs années
@@ -93,7 +94,7 @@ python manage.py seed_categories
 ## Tests
 
 ```bash
-python manage.py test                    # tous les tests (92)
+python manage.py test                    # tous les tests (164)
 python manage.py test accounting         # tests du module comptabilité
 python manage.py test accounting.tests.test_models  # un module spécifique
 ```
