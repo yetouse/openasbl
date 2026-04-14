@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n help_tags %}
 
 {% block title %}Paramètres — OpenASBL{% endblock %}
 
@@ -8,17 +8,41 @@
     <div class="col-lg-7">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h1 class="card-title h4 mb-4">{% trans "Paramètres de l'ASBL" %}</h1>
-                <form method="post">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="card-title h4 mb-0">{% trans "Paramètres de l'ASBL" %}</h1>
+                    {% help_button "organization_settings" %}
+                </div>
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     {% for field in form %}
+                    {% if field.name != "logo" %}
                     <div class="mb-3">
                         <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
                         {{ field }}
                         {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
                     </div>
+                    {% endif %}
                     {% endfor %}
-                    <button type="submit" class="btn btn-success">Enregistrer</button>
+
+                    <!-- Logo upload section -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">{% trans "Logo" %}</label>
+                        {% if form.instance.logo %}
+                        <div class="mb-3 p-3 bg-light rounded d-flex align-items-center gap-3">
+                            <img src="{{ form.instance.logo.url }}" alt="Logo actuel" style="max-height: 80px; max-width: 200px;" class="rounded">
+                            <span class="text-muted small">Logo actuel</span>
+                        </div>
+                        {% else %}
+                        <div class="mb-3 p-3 bg-light rounded">
+                            <span class="text-muted small">{% trans "Aucun logo configuré" %}</span>
+                        </div>
+                        {% endif %}
+                        {{ form.logo }}
+                        {% if form.logo.errors %}<div class="text-danger small mt-1">{{ form.logo.errors.0 }}</div>{% endif %}
+                        <div class="form-text">{% trans "Format recommandé : PNG avec fond transparent. Le logo apparaîtra sur les rapports PDF, Excel et dans la barre de navigation." %}</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">{% trans "Enregistrer" %}</button>
                 </form>
             </div>
         </div>
