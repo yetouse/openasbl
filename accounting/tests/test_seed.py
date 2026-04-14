@@ -5,7 +5,7 @@ from core.models import Organization
 
 class SeedCategoriesTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
 
     def test_seed_creates_categories(self):
         seed_categories(self.org)

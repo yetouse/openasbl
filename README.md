@@ -10,7 +10,7 @@ Comptabilité simplifiée pour les petites ASBL belges non assujetties à la TVA
 
 OpenASBL est une application web de comptabilité conçue pour les petites associations sans but lucratif (ASBL) belges. Elle permet de tenir une comptabilité simplifiée conforme aux obligations légales, sans nécessiter de connaissances comptables avancées.
 
-Développée initialement pour le [Royal Cercle de Voile de Dave](https://www.rcvd.be/) (RCVD), l'application est générique et peut être utilisée par toute petite ASBL.
+Développée initialement pour le [Royal Cercle de Voile de Dave](https://www.royal-cercle-de-voile-de-dave.be/) (RCVD), l'application est générique et peut être utilisée par toute petite ASBL.
 
 ## Fonctionnalités
 
@@ -80,8 +80,8 @@ Au premier lancement, l'assistant de configuration vous guide pour créer votre 
 # Catégories par défaut (clubs sportifs)
 python manage.py seed_categories
 
-# Données complètes RCVD (exercices, budgets, écritures)
-python manage.py seed_rcvd_data
+# Données de démonstration (exercices, budgets, écritures)
+# python manage.py seed_demo_data  # à venir
 ```
 
 ## Tests
