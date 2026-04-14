@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Journal comptable</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; color: #1e293b; line-height: 1.4; margin: 20px; }
+        h1 { font-size: 18px; margin-bottom: 4px; }
+        h2 { font-size: 14px; color: #64748b; margin-bottom: 16px; font-weight: 400; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th, td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        th { background: #f8fafc; font-weight: 600; font-size: 10px; text-transform: uppercase; }
+        .num { text-align: right; }
+        .totals td { font-weight: 700; border-top: 2px solid #1e293b; }
+        .balance td { font-weight: 700; font-size: 12px; }
+        .positive { color: #16a34a; }
+        .negative { color: #dc2626; }
+    </style>
+</head>
+<body>
+    <h1>Journal comptable</h1>
+    <h2>{{ organization.name }} &mdash; Exercice {{ fiscal_year.start_date }} &rarr; {{ fiscal_year.end_date }}</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Catégorie</th>
+                <th class="num">Recette</th>
+                <th class="num">Dépense</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row.date }}</td>
+                <td>{{ row.description }}</td>
+                <td>{{ row.category }}</td>
+                <td class="num">{% if row.income %}{{ row.income }} €{% endif %}</td>
+                <td class="num">{% if row.expense %}{{ row.expense }} €{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align:center; color:#64748b;">Aucune écriture</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        {% if rows %}
+        <tfoot>
+            <tr class="totals">
+                <td colspan="3">TOTAUX</td>
+                <td class="num">{{ total_income }} €</td>
+                <td class="num">{{ total_expense }} €</td>
+            </tr>
+            <tr class="balance">
+                <td colspan="3">SOLDE</td>
+                <td colspan="2" class="num {% if balance >= 0 %}positive{% else %}negative{% endif %}">{{ balance }} €</td>
+            </tr>
+        </tfoot>
+        {% endif %}
+    </table>
+</body>
+</html>

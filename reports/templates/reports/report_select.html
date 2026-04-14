@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Rapports — OpenASBL{% endblock %}
+
+{% block content %}
+<h1>Rapports</h1>
+
+<div style="margin: 1rem 0;">
+    <label for="fy-select" style="font-weight: 600;">Exercice comptable :</label>
+    <select id="fy-select" style="padding: 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius);">
+        {% for fy in fiscal_years %}
+        <option value="{{ fy.pk }}" data-start="{{ fy.start_date.year }}" data-end="{{ fy.end_date.year }}">{{ fy }}</option>
+        {% empty %}
+        <option value="">Aucun exercice disponible</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem;">
+
+    <!-- Journal -->
+    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.25rem;">
+        <h2 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Journal comptable</h2>
+        <p style="color: var(--color-muted); font-size: 0.9rem; margin-bottom: 1rem;">Toutes les écritures de l'exercice avec totaux.</p>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <a id="journal-pdf" class="btn" href="#">PDF</a>
+            <a id="journal-excel" class="btn" href="#">Excel</a>
+            <a id="journal-csv" class="btn" href="#">CSV</a>
+        </div>
+    </div>
+
+    <!-- Patrimoine -->
+    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.25rem;">
+        <h2 style="font-size: 1.1rem; margin-bottom: 0.5rem;">État du patrimoine</h2>
+        <p style="color: var(--color-muted); font-size: 0.9rem; margin-bottom: 1rem;">Actifs, dettes et valeur nette.</p>
+        <div style="display: flex; gap: 0.5rem;">
+            <a id="patrimony-pdf" class="btn" href="#">PDF</a>
+        </div>
+    </div>
+
+    <!-- Rapport mensuel CA -->
+    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.25rem;">
+        <h2 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Rapport mensuel CA</h2>
+        <p style="color: var(--color-muted); font-size: 0.9rem; margin-bottom: 0.75rem;">Résumé mensuel pour le conseil d'administration.</p>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center;">
+            <select id="month-select" style="padding: 0.4rem; border: 1px solid var(--color-border); border-radius: var(--radius);">
+                <option value="1">Janvier</option>
+                <option value="2">Février</option>
+                <option value="3">Mars</option>
+                <option value="4">Avril</option>
+                <option value="5">Mai</option>
+                <option value="6">Juin</option>
+                <option value="7">Juillet</option>
+                <option value="8">Août</option>
+                <option value="9">Septembre</option>
+                <option value="10">Octobre</option>
+                <option value="11">Novembre</option>
+                <option value="12">Décembre</option>
+            </select>
+            <select id="year-select" style="padding: 0.4rem; border: 1px solid var(--color-border); border-radius: var(--radius);"></select>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <a id="monthly-ca-pdf" class="btn" href="#">PDF</a>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background: var(--color-primary);
+        color: #fff;
+        text-decoration: none;
+        border-radius: var(--radius);
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    .btn:hover { opacity: 0.9; }
+</style>
+
+<script>
+(function() {
+    const fySelect = document.getElementById('fy-select');
+    const monthSelect = document.getElementById('month-select');
+    const yearSelect = document.getElementById('year-select');
+
+    function updateYearOptions() {
+        const opt = fySelect.options[fySelect.selectedIndex];
+        if (!opt || !opt.value) return;
+        const startYear = parseInt(opt.dataset.start);
+        const endYear = parseInt(opt.dataset.end);
+        yearSelect.innerHTML = '';
+        for (let y = startYear; y <= endYear; y++) {
+            const o = document.createElement('option');
+            o.value = y;
+            o.textContent = y;
+            yearSelect.appendChild(o);
+        }
+    }
+
+    function updateLinks() {
+        const fy = fySelect.value;
+        if (!fy) return;
+        const base = '{% url "reports:journal_pdf" %}';
+        document.getElementById('journal-pdf').href = '{% url "reports:journal_pdf" %}?fiscal_year=' + fy;
+        document.getElementById('journal-excel').href = '{% url "reports:journal_excel" %}?fiscal_year=' + fy;
+        document.getElementById('journal-csv').href = '{% url "reports:journal_csv" %}?fiscal_year=' + fy;
+        document.getElementById('patrimony-pdf').href = '{% url "reports:patrimony_pdf" %}?fiscal_year=' + fy;
+
+        const month = monthSelect.value;
+        const year = yearSelect.value;
+        document.getElementById('monthly-ca-pdf').href = '{% url "reports:monthly_ca_pdf" %}?fiscal_year=' + fy + '&year=' + year + '&month=' + month;
+    }
+
+    fySelect.addEventListener('change', function() {
+        updateYearOptions();
+        updateLinks();
+    });
+    monthSelect.addEventListener('change', updateLinks);
+    yearSelect.addEventListener('change', updateLinks);
+
+    // Set current month as default
+    const now = new Date();
+    monthSelect.value = now.getMonth() + 1;
+
+    updateYearOptions();
+    updateLinks();
+})();
+</script>
+{% endblock %}
