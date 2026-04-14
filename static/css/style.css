@@ -1,5 +1,34 @@
 /* OpenASBL custom overrides for Bootstrap 5 */
 
+:root {
+    --bs-primary: #1e3a5f;
+    --bs-primary-rgb: 30, 58, 95;
+}
+
+.bg-primary {
+    background-color: #1e3a5f !important;
+}
+
+.btn-primary {
+    background-color: #1e3a5f;
+    border-color: #1e3a5f;
+}
+
+.btn-primary:hover {
+    background-color: #162d4a;
+    border-color: #162d4a;
+}
+
+.btn-outline-primary {
+    color: #1e3a5f;
+    border-color: #1e3a5f;
+}
+
+.btn-outline-primary:hover {
+    background-color: #1e3a5f;
+    border-color: #1e3a5f;
+}
+
 .amount-positive {
     color: var(--bs-success) !important;
     font-weight: 600;
