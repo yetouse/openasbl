@@ -4,37 +4,57 @@
 {% block title %}Tableau de bord — OpenASBL{% endblock %}
 
 {% block content %}
-<h1>{% trans "Tableau de bord" %}</h1>
+<h1 class="h3 mb-4">{% trans "Tableau de bord" %}</h1>
 
 {% if current_fy %}
-<div class="card">
-    <h2>Exercice en cours : {{ current_fy }}</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space);">
-        <div class="card">
-            <p class="text-muted">Recettes</p>
-            <p class="amount-positive">{{ summary.income }} &euro;</p>
-        </div>
-        <div class="card">
-            <p class="text-muted">Depenses</p>
-            <p class="amount-negative">{{ summary.expenses }} &euro;</p>
-        </div>
-        <div class="card">
-            <p class="text-muted">Solde</p>
-            <p class="{% if summary.balance >= 0 %}amount-positive{% else %}amount-negative{% endif %}">{{ summary.balance }} &euro;</p>
-        </div>
-        <div class="card">
-            <p class="text-muted">Ecritures</p>
-            <p>{{ summary.entry_count }}</p>
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h2 class="card-title h5 mb-3">Exercice en cours : {{ current_fy }}</h2>
+        <div class="row g-3">
+            <div class="col-sm-6 col-lg-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <p class="text-muted mb-1 small">Recettes</p>
+                        <p class="text-success fw-bold fs-5 mb-0">{{ summary.income }} &euro;</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <p class="text-muted mb-1 small">Depenses</p>
+                        <p class="text-danger fw-bold fs-5 mb-0">{{ summary.expenses }} &euro;</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <p class="text-muted mb-1 small">Solde</p>
+                        <p class="{% if summary.balance >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold fs-5 mb-0">{{ summary.balance }} &euro;</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <p class="text-muted mb-1 small">Ecritures</p>
+                        <p class="fw-bold fs-5 mb-0">{{ summary.entry_count }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-<div style="margin-top: var(--space);">
+<div class="d-flex gap-2">
     <a href="{% url 'accounting:entry_create' %}" class="btn btn-primary">Nouvelle ecriture</a>
-    <a href="{% url 'accounting:entry_list' %}?fiscal_year={{ current_fy.pk }}" class="btn btn-primary">Voir les ecritures</a>
+    <a href="{% url 'accounting:entry_list' %}?fiscal_year={{ current_fy.pk }}" class="btn btn-outline-primary">Voir les ecritures</a>
 </div>
 {% else %}
-<div class="card">
-    <p>Aucun exercice comptable ouvert. Creez-en un pour commencer.</p>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <p class="text-muted mb-0">Aucun exercice comptable ouvert. Creez-en un pour commencer.</p>
+    </div>
 </div>
 {% endif %}
 {% endblock %}

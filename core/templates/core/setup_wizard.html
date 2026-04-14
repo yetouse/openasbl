@@ -4,32 +4,40 @@
 {% block title %}Configuration initiale — OpenASBL{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 600px; margin: 2rem auto;">
-    <h1>{% trans "Bienvenue dans OpenASBL" %}</h1>
-    <p>Configurez votre ASBL et créez le compte administrateur.</p>
-    <form method="post">
-        {% csrf_token %}
-        <h2>Votre ASBL</h2>
-        {% for field in form %}
-        {% if field.name|slice:":3" == "org" %}
-        <div class="form-group">
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}<p class="text-danger">{{ field.errors.0 }}</p>{% endif %}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="card-title h4 mb-3">{% trans "Bienvenue dans OpenASBL" %}</h1>
+                <p class="text-muted">Configurez votre ASBL et créez le compte administrateur.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <h2 class="h5 mt-4 mb-3">Votre ASBL</h2>
+                    {% for field in form %}
+                    {% if field.name|slice:":3" == "org" %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    <h2 class="h5 mt-4 mb-3">Compte administrateur</h2>
+                    {% for field in form %}
+                    {% if field.name|slice:":5" == "admin" %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary">Démarrer</button>
+                    </div>
+                </form>
+            </div>
         </div>
-        {% endif %}
-        {% endfor %}
-        <h2 style="margin-top: var(--space);">Compte administrateur</h2>
-        {% for field in form %}
-        {% if field.name|slice:":5" == "admin" %}
-        <div class="form-group">
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}<p class="text-danger">{{ field.errors.0 }}</p>{% endif %}
-        </div>
-        {% endif %}
-        {% endfor %}
-        <button type="submit" class="btn btn-primary" style="margin-top: var(--space);">Démarrer</button>
-    </form>
+    </div>
 </div>
 {% endblock %}

@@ -1,9 +1,9 @@
 {% if text %}
-<div class="card" style="background: #eff6ff; border-color: #bfdbfe;">
-    <p>{{ text }}</p>
+<div class="alert alert-info">
+    <p class="mb-0">{{ text }}</p>
 </div>
 {% else %}
-<div class="card">
-    <p class="text-muted">Aucune aide disponible pour ce sujet.</p>
+<div class="alert alert-light">
+    <p class="text-muted mb-0">Aucune aide disponible pour ce sujet.</p>
 </div>
 {% endif %}
