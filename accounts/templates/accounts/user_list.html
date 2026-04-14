@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Utilisateurs — OpenASBL{% endblock %}
+
+{% block content %}
+<h1>{% trans "Utilisateurs" %}</h1>
+<table>
+    <thead>
+        <tr>
+            <th>{% trans "Nom d'utilisateur" %}</th>
+            <th>{% trans "Nom" %}</th>
+            <th>{% trans "Permission" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for profile in profiles %}
+        <tr>
+            <td>{{ profile.user.username }}</td>
+            <td>{{ profile.user.get_full_name }}</td>
+            <td>{{ profile.get_permission_level_display }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
