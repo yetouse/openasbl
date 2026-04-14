@@ -1,0 +1,9 @@
+{% if text %}
+<div class="card" style="background: #eff6ff; border-color: #bfdbfe;">
+    <p>{{ text }}</p>
+</div>
+{% else %}
+<div class="card">
+    <p class="text-muted">Aucune aide disponible pour ce sujet.</p>
+</div>
+{% endif %}
