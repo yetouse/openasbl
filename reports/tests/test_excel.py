@@ -40,10 +40,12 @@ class JournalExcelTest(ExcelTestMixin, TestCase):
         self.assertIsInstance(result, bytes)
         wb = load_workbook(io.BytesIO(result))
         ws = wb.active
-        headers = [cell.value for cell in ws[1]]
+        # Row 1 = title, row 4 = headers
+        self.assertIn("Journal comptable", ws.cell(row=1, column=1).value)
+        headers = [cell.value for cell in ws[4]]
         self.assertEqual(headers, ["Date", "Description", "Catégorie", "Recette", "Dépense"])
-        # Check data row
-        self.assertEqual(ws.cell(row=2, column=2).value, "Cotisation membre")
+        # Data starts at row 5
+        self.assertEqual(ws.cell(row=5, column=2).value, "Cotisation membre")
 
 
 class JournalCsvTest(ExcelTestMixin, TestCase):
@@ -67,9 +69,10 @@ class BudgetTrackingExcelTest(ExcelTestMixin, TestCase):
         result = generate_budget_tracking_excel(self.fy)
         self.assertIsInstance(result, bytes)
         wb = load_workbook(io.BytesIO(result))
-        self.assertEqual(wb.sheetnames, ["Recettes", "Dépenses"])
-        ws = wb["Recettes"]
-        headers = [cell.value for cell in ws[1]]
+        ws = wb.active
+        # Row 1 = title, row 4 = headers
+        self.assertIn("Budget", ws.cell(row=1, column=1).value)
+        headers = [cell.value for cell in ws[4]]
         self.assertEqual(headers, ["Catégorie", "Budget", "Réalisé", "Écart", "%"])
 
     def test_empty_budget(self):
@@ -88,7 +91,7 @@ class AnnualAccountsExcelTest(ExcelTestMixin, TestCase):
         result = generate_annual_accounts_excel(self.fy)
         self.assertIsInstance(result, bytes)
         wb = load_workbook(io.BytesIO(result))
-        self.assertEqual(wb.sheetnames, ["Résumé", "Journal", "Patrimoine"])
+        self.assertEqual(wb.sheetnames, ["Comptes annuels", "Journal", "Patrimoine"])
         ws_patrimony = wb["Patrimoine"]
         self.assertEqual(ws_patrimony.cell(row=1, column=1).value, "État du patrimoine")
 
