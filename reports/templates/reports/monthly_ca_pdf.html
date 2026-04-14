@@ -1,3 +1,4 @@
+{% load accounting_filters %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -25,7 +26,7 @@
     <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
         {% if logo_path %}<img src="file://{{ logo_path }}" style="height: 50px;" alt="">{% endif %}
         <div>
-            <h1 style="margin-bottom: 2px;">Rapport mensuel — Conseil d'Administration</h1>
+            <h1 style="margin-bottom: 2px;">Rapport mensuel &mdash; Conseil d'Administration</h1>
             <h2 style="margin-bottom: 0;">{{ organization.name }} &mdash; {{ month_name }} {{ year }}</h2>
         </div>
     </div>
@@ -33,15 +34,15 @@
     <div class="summary">
         <div class="summary-card">
             <div class="label">Recettes</div>
-            <div class="value positive">{{ total_income }} €</div>
+            <div class="value positive">{{ total_income|money }} &euro;</div>
         </div>
         <div class="summary-card">
             <div class="label">Dépenses</div>
-            <div class="value negative">{{ total_expense }} €</div>
+            <div class="value negative">{{ total_expense|money }} &euro;</div>
         </div>
         <div class="summary-card">
             <div class="label">Solde</div>
-            <div class="value {% if balance >= 0 %}positive{% else %}negative{% endif %}">{{ balance }} €</div>
+            <div class="value {% if balance >= 0 %}positive{% else %}negative{% endif %}">{{ balance|money }} &euro;</div>
         </div>
     </div>
 
@@ -61,9 +62,9 @@
             <tr>
                 <td>{{ item.category.name }}</td>
                 <td>{{ item.category.get_category_type_display }}</td>
-                <td class="num">{{ item.planned }} €</td>
-                <td class="num">{{ item.actual }} €</td>
-                <td class="num {% if item.diff >= 0 %}positive{% else %}negative{% endif %}">{{ item.diff }} €</td>
+                <td class="num">{{ item.planned|money }} &euro;</td>
+                <td class="num">{{ item.actual|money }} &euro;</td>
+                <td class="num {% if item.diff >= 0 %}positive{% else %}negative{% endif %}">{{ item.diff|money }} &euro;</td>
             </tr>
             {% empty %}
             <tr><td colspan="5" style="text-align:center; color:#64748b;">Aucune catégorie</td></tr>
@@ -84,10 +85,10 @@
         <tbody>
             {% for entry in entries %}
             <tr>
-                <td>{{ entry.date }}</td>
+                <td>{{ entry.date|date:"d/m/Y" }}</td>
                 <td>{{ entry.description }}</td>
                 <td>{{ entry.category.name }}</td>
-                <td class="num">{{ entry.amount }} €</td>
+                <td class="num">{{ entry.amount|money }} &euro;</td>
             </tr>
             {% empty %}
             <tr><td colspan="4" style="text-align:center; color:#64748b;">Aucune écriture ce mois</td></tr>

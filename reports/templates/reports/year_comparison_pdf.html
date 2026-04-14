@@ -1,3 +1,4 @@
+{% load accounting_filters %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -42,7 +43,7 @@
             <tr>
                 <td>{{ row.name }}</td>
                 {% for amount in row.amounts %}
-                <td class="num">{% if amount %}{{ amount }} &euro;{% else %}&mdash;{% endif %}</td>
+                <td class="num">{% if amount %}{{ amount|money }} &euro;{% else %}&mdash;{% endif %}</td>
                 {% endfor %}
             </tr>
             {% empty %}
@@ -53,7 +54,7 @@
             <tr class="totals">
                 <td>TOTAL RECETTES</td>
                 {% for fd in fy_data %}
-                <td class="num">{{ fd.total_income }} &euro;</td>
+                <td class="num">{{ fd.total_income|money }} &euro;</td>
                 {% endfor %}
             </tr>
         </tfoot>
@@ -74,7 +75,7 @@
             <tr>
                 <td>{{ row.name }}</td>
                 {% for amount in row.amounts %}
-                <td class="num">{% if amount %}{{ amount }} &euro;{% else %}&mdash;{% endif %}</td>
+                <td class="num">{% if amount %}{{ amount|money }} &euro;{% else %}&mdash;{% endif %}</td>
                 {% endfor %}
             </tr>
             {% empty %}
@@ -85,7 +86,7 @@
             <tr class="totals">
                 <td>TOTAL DÉPENSES</td>
                 {% for fd in fy_data %}
-                <td class="num">{{ fd.total_expense }} &euro;</td>
+                <td class="num">{{ fd.total_expense|money }} &euro;</td>
                 {% endfor %}
             </tr>
         </tfoot>
@@ -96,7 +97,7 @@
             <tr class="balance">
                 <td>SOLDE</td>
                 {% for fd in fy_data %}
-                <td class="num {% if fd.balance >= 0 %}positive{% else %}negative{% endif %}">{{ fd.balance }} &euro;</td>
+                <td class="num {% if fd.balance >= 0 %}positive{% else %}negative{% endif %}">{{ fd.balance|money }} &euro;</td>
                 {% endfor %}
             </tr>
         </tfoot>
