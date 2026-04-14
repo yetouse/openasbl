@@ -1,8 +1,0 @@
-- [Project setup](project_setup.md) — Déployé sur yetouse.cloud, VPS Hostinger, SSH root
-- [Yannick](user_yannick.md) — Project owner, communique en français
-- [ASBL Context](project_asbl_context.md) — RCVD, club de voile à Dave, ~300 membres
-- [RCVD context](user_rcvd_context.md) — Yannick est membre RCVD, app demandée par le trésorier
-- [Tech stack & état](project_tech_stack.md) — v2 déployé, Django+SQLite+HTMX, 92 tests, yetouse.cloud
-- [Design UI](feedback_design.md) — Bleu marine #1e3a5f, pas de bleu vif, style sobre
-- [Sécurité](feedback_security.md) — Ne jamais commiter de secrets/tokens sur GitHub
-- [VPS Hostinger](reference_hostinger.md) — IP 31.97.156.97, SSH root, token API local uniquement
