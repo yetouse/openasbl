@@ -15,4 +15,6 @@ urlpatterns = [
     path("fiscal-years/<int:fiscal_year_pk>/asset-snapshot/create/", views.asset_snapshot_create, name="asset_snapshot_create"),
     path("categories/", views.category_list, name="category_list"),
     path("categories/create/", views.category_create, name="category_create"),
+    path("categories/<int:pk>/edit/", views.category_edit, name="category_edit"),
+    path("categories/<int:pk>/delete/", views.category_delete, name="category_delete"),
 ]

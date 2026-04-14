@@ -110,6 +110,35 @@ class CategoryViewTest(TestCase):
         response = self.client.post("/categories/create/", {"name": "Test", "category_type": "income", "description": ""})
         self.assertEqual(response.status_code, 302)
 
+    def test_edit_category(self):
+        cat = Category.objects.create(organization=self.org, name="Old Name", category_type=CategoryType.INCOME)
+        response = self.client.post(f"/categories/{cat.pk}/edit/", {"name": "New Name", "category_type": "income", "description": "Updated"})
+        self.assertEqual(response.status_code, 302)
+        cat.refresh_from_db()
+        self.assertEqual(cat.name, "New Name")
+        self.assertEqual(cat.description, "Updated")
+
+    def test_delete_unused_category(self):
+        cat = Category.objects.create(organization=self.org, name="To Delete", category_type=CategoryType.EXPENSE)
+        response = self.client.post(f"/categories/{cat.pk}/delete/")
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Category.objects.filter(pk=cat.pk).exists())
+
+    def test_cannot_delete_category_with_entries(self):
+        cat = Category.objects.create(organization=self.org, name="Used", category_type=CategoryType.INCOME)
+        fy = FiscalYear.objects.create(organization=self.org, start_date=date(2026, 1, 1), end_date=date(2026, 12, 31))
+        Entry.objects.create(fiscal_year=fy, category=cat, date=date(2026, 3, 15), amount=Decimal("50.00"), description="Test", created_by=self.user)
+        response = self.client.post(f"/categories/{cat.pk}/delete/")
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Category.objects.filter(pk=cat.pk).exists())
+
+    def test_reader_cannot_edit_category(self):
+        self.user.profile.permission_level = PermissionLevel.LECTURE
+        self.user.profile.save()
+        cat = Category.objects.create(organization=self.org, name="Test", category_type=CategoryType.INCOME)
+        response = self.client.post(f"/categories/{cat.pk}/edit/", {"name": "Hacked", "category_type": "income", "description": ""})
+        self.assertEqual(response.status_code, 403)
+
 class BudgetViewTest(TestCase):
     def setUp(self):
         self.org = Organization.objects.create(name="RCVD", address="Dave")
