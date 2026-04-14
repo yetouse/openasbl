@@ -112,6 +112,34 @@
 </div>
 {% endif %}
 
+{% if chart_data %}
+<!-- Charts -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title h5 mb-3">Recettes & Dépenses par mois</h2>
+                <canvas id="barChart" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title h5 mb-3">Répartition des dépenses</h2>
+                <canvas id="pieChart" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h2 class="card-title h5 mb-3">Évolution du solde cumulé</h2>
+        <canvas id="lineChart" height="200"></canvas>
+    </div>
+</div>
+{% endif %}
+
 <div class="d-flex gap-2">
     <a href="{% url 'accounting:entry_create' %}" class="btn btn-primary">Nouvelle écriture</a>
     <a href="{% url 'accounting:entry_list' %}?fiscal_year={{ current_fy.pk }}" class="btn btn-outline-primary">Voir les écritures</a>
@@ -124,4 +152,82 @@
     </div>
 </div>
 {% endif %}
+
 {% endblock %}
+
+{% if chart_data %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const data = {{ chart_data|safe }};
+    const navy = '#1e3a5f';
+    const navyLight = 'rgba(30, 58, 95, 0.15)';
+    const green = '#198754';
+    const greenLight = 'rgba(25, 135, 84, 0.7)';
+    const red = '#dc3545';
+    const redLight = 'rgba(220, 53, 69, 0.7)';
+    const grey = 'rgba(150, 150, 150, 0.5)';
+    const greyBorder = 'rgba(150, 150, 150, 0.8)';
+
+    // Bar chart: income vs expense by month
+    const barDatasets = [
+        {label: 'Recettes', data: data.current_income, backgroundColor: greenLight, borderColor: green, borderWidth: 1},
+        {label: 'Dépenses', data: data.current_expense, backgroundColor: redLight, borderColor: red, borderWidth: 1},
+    ];
+    if (data.has_previous) {
+        barDatasets.push(
+            {label: 'Recettes N-1', data: data.previous_income, backgroundColor: 'rgba(25, 135, 84, 0.2)', borderColor: green, borderWidth: 1, borderDash: [5, 5]},
+            {label: 'Dépenses N-1', data: data.previous_expense, backgroundColor: 'rgba(220, 53, 69, 0.2)', borderColor: red, borderWidth: 1, borderDash: [5, 5]},
+        );
+    }
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {labels: data.labels, datasets: barDatasets},
+        options: {
+            responsive: true,
+            plugins: {legend: {position: 'bottom', labels: {usePointStyle: true, padding: 15}}},
+            scales: {y: {beginAtZero: true, ticks: {callback: v => v.toLocaleString('fr-BE') + ' €'}}}
+        }
+    });
+
+    // Line chart: cumulative balance
+    const lineDatasets = [
+        {label: 'Solde cumulé', data: data.cumul_current, borderColor: navy, backgroundColor: navyLight, fill: true, tension: 0.3, pointRadius: 4},
+    ];
+    if (data.has_previous) {
+        lineDatasets.push(
+            {label: 'Solde N-1', data: data.cumul_previous, borderColor: greyBorder, backgroundColor: 'transparent', borderDash: [6, 4], tension: 0.3, pointRadius: 3},
+        );
+    }
+    new Chart(document.getElementById('lineChart'), {
+        type: 'line',
+        data: {labels: data.labels, datasets: lineDatasets},
+        options: {
+            responsive: true,
+            plugins: {legend: {position: 'bottom', labels: {usePointStyle: true, padding: 15}}},
+            scales: {y: {ticks: {callback: v => v.toLocaleString('fr-BE') + ' €'}}}
+        }
+    });
+
+    // Pie chart: expense breakdown
+    if (data.pie_labels.length > 0) {
+        const colors = ['#1e3a5f', '#2e5a8f', '#3d7abf', '#5c9ad5', '#7db8e8', '#a3d1f0', '#c9e4f8', '#4a7c59', '#6b9e7a', '#8cbf9b'];
+        new Chart(document.getElementById('pieChart'), {
+            type: 'doughnut',
+            data: {
+                labels: data.pie_labels,
+                datasets: [{data: data.pie_values, backgroundColor: colors.slice(0, data.pie_labels.length), borderWidth: 2}]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {position: 'bottom', labels: {usePointStyle: true, padding: 10, font: {size: 11}}},
+                    tooltip: {callbacks: {label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString('fr-BE') + ' €'}}
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endif %}

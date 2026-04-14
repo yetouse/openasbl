@@ -1,3 +1,5 @@
+import json
+from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django.contrib import messages
@@ -9,6 +11,22 @@ from accounts.models import PermissionLevel
 from accounting.forms import AssetSnapshotForm, CategoryForm, EntryForm, FiscalYearForm
 from accounting.models import AssetSnapshot, Budget, Category, CategoryType, Entry, FiscalYear, FiscalYearStatus
 
+
+def _monthly_data(fiscal_year):
+    """Build monthly income/expense totals for a fiscal year."""
+    months = defaultdict(lambda: {"income": Decimal("0"), "expense": Decimal("0")})
+    entries = Entry.objects.filter(fiscal_year=fiscal_year).values(
+        "date__year", "date__month", "category__category_type"
+    ).annotate(total=Sum("amount"))
+    for row in entries:
+        key = f"{row['date__year']}-{row['date__month']:02d}"
+        if row["category__category_type"] == CategoryType.INCOME:
+            months[key]["income"] = row["total"]
+        else:
+            months[key]["expense"] = row["total"]
+    return dict(months)
+
+
 @login_required
 def dashboard(request):
     org = request.user.profile.organization
@@ -17,6 +35,7 @@ def dashboard(request):
     summary = {}
     budget_summary = None
     recent_entries = []
+    chart_data = None
     if current_fy:
         income = Entry.objects.filter(fiscal_year=current_fy, category__category_type=CategoryType.INCOME).aggregate(total=Sum("amount"))["total"] or 0
         expenses = Entry.objects.filter(fiscal_year=current_fy, category__category_type=CategoryType.EXPENSE).aggregate(total=Sum("amount"))["total"] or 0
@@ -37,9 +56,94 @@ def dashboard(request):
         # Recent entries
         recent_entries = Entry.objects.filter(fiscal_year=current_fy).select_related("category").order_by("-date", "-created_at")[:5]
 
+        # Chart data: monthly comparison with previous year
+        previous_fy = FiscalYear.objects.filter(
+            organization=org, start_date__lt=current_fy.start_date
+        ).order_by("-start_date").first()
+
+        current_monthly = _monthly_data(current_fy)
+        previous_monthly = _monthly_data(previous_fy) if previous_fy else {}
+
+        # Build ordered month labels from current fiscal year range
+        from datetime import date
+        labels = []
+        d = current_fy.start_date.replace(day=1)
+        end = current_fy.end_date
+        while d <= end:
+            labels.append(f"{d.year}-{d.month:02d}")
+            if d.month == 12:
+                d = d.replace(year=d.year + 1, month=1)
+            else:
+                d = d.replace(month=d.month + 1)
+
+        # Previous year labels (offset by 1 year back)
+        prev_labels = []
+        if previous_fy:
+            pd = previous_fy.start_date.replace(day=1)
+            p_end = previous_fy.end_date
+            while pd <= p_end:
+                prev_labels.append(f"{pd.year}-{pd.month:02d}")
+                if pd.month == 12:
+                    pd = pd.replace(year=pd.year + 1, month=1)
+                else:
+                    pd = pd.replace(month=pd.month + 1)
+
+        MONTH_NAMES = ["", "Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"]
+
+        display_labels = [MONTH_NAMES[int(l.split("-")[1])] for l in labels]
+
+        cur_income = [float(current_monthly.get(l, {}).get("income", 0)) for l in labels]
+        cur_expense = [float(current_monthly.get(l, {}).get("expense", 0)) for l in labels]
+        prev_income = [float(previous_monthly.get(l, {}).get("income", 0)) for l in prev_labels] if prev_labels else []
+        prev_expense = [float(previous_monthly.get(l, {}).get("expense", 0)) for l in prev_labels] if prev_labels else []
+
+        # Pad previous year data to match current year length
+        while len(prev_income) < len(labels):
+            prev_income.append(0)
+            prev_expense.append(0)
+        prev_income = prev_income[:len(labels)]
+        prev_expense = prev_expense[:len(labels)]
+
+        # Cumulative balance
+        cumul_current = []
+        running = 0
+        for i in range(len(labels)):
+            running += cur_income[i] - cur_expense[i]
+            cumul_current.append(round(running, 2))
+
+        cumul_previous = []
+        running = 0
+        for i in range(len(labels)):
+            running += prev_income[i] - prev_expense[i]
+            cumul_previous.append(round(running, 2))
+
+        # Expense breakdown by category (pie chart)
+        expense_by_cat = Entry.objects.filter(
+            fiscal_year=current_fy, category__category_type=CategoryType.EXPENSE
+        ).values("category__name").annotate(total=Sum("amount")).order_by("-total")
+
+        pie_labels = [row["category__name"] for row in expense_by_cat]
+        pie_values = [float(row["total"]) for row in expense_by_cat]
+
+        chart_data = json.dumps({
+            "labels": display_labels,
+            "current_income": cur_income,
+            "current_expense": cur_expense,
+            "previous_income": prev_income,
+            "previous_expense": prev_expense,
+            "cumul_current": cumul_current,
+            "cumul_previous": cumul_previous,
+            "has_previous": previous_fy is not None,
+            "current_fy_label": str(current_fy),
+            "previous_fy_label": str(previous_fy) if previous_fy else "",
+            "pie_labels": pie_labels,
+            "pie_values": pie_values,
+        })
+
     return render(request, "accounting/dashboard.html", {
         "fiscal_years": fiscal_years, "current_fy": current_fy, "summary": summary,
         "budget_summary": budget_summary, "recent_entries": recent_entries,
+        "chart_data": chart_data,
     })
 
 @login_required
