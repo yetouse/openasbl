@@ -1,15 +1,22 @@
 ---
 name: Project setup and access
-description: OpenASBL project - GitHub repo access confirmed, initial setup done
+description: OpenASBL déployé sur yetouse.cloud, GitHub repo, VPS Hostinger Ubuntu 24.04
 type: project
 ---
 
 Projet OpenASBL hébergé sur https://github.com/yetouse/openasbl.git
 
-- Accès en lecture/écriture confirmé le 2026-04-13
-- Premier commit poussé sur main
 - Git config : Yannick CAISE <yannick.caise@gmail.com>
 - Working directory : /home/yac/openasbl
 
-**Why:** Projet en phase d'initialisation, pas encore de contenu métier.
-**How to apply:** Le projet est prêt à recevoir du code. Toujours vérifier l'état du remote avant de travailler.
+**Déploiement production (2026-04-14) :**
+- VPS Hostinger : 31.97.156.97 (Ubuntu 24.04, 2 vCPU, 8 Go RAM)
+- Domaine : https://yetouse.cloud
+- HTTPS : Let's Encrypt (certbot, renouvellement auto)
+- SSH root direct depuis WSL (clé SSH configurée)
+- App installée dans /opt/openasbl
+- Gunicorn (systemd service) + Nginx reverse proxy
+- Admin login : admin / OpenASBL2026! (à changer)
+
+**Why:** Savoir comment accéder au projet et au serveur de production.
+**How to apply:** Pour déployer : git push puis ssh root@31.97.156.97 pour pull + restart.

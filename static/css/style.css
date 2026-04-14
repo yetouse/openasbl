@@ -73,3 +73,25 @@ select {
     background-size: 16px 12px;
     padding-right: 2.25rem;
 }
+
+/* ── Navbar logo overflow ── */
+
+.navbar {
+    overflow: visible;
+    position: relative;
+    z-index: 1030;
+}
+
+.navbar-logo {
+    height: 54px;
+    width: auto;
+    position: relative;
+    z-index: 1031;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+@media (max-width: 991.98px) {
+    .navbar-logo {
+        height: 44px;
+    }
+}
