@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load i18n accounting_filters %}
+
+{% block title %}Documents — OpenASBL{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{% trans "Documents & justificatifs" %}</h1>
+    <span class="badge bg-secondary fs-6">{{ all_count }} document{{ all_count|pluralize:"s" }} au total</span>
+</div>
+
+<!-- Fiscal year selector -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-auto">
+                <label class="form-label small text-muted mb-0">{% trans "Exercice" %}</label>
+            </div>
+            <div class="col-auto">
+                <select name="fiscal_year" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                    {% for fy in fiscal_years %}
+                    <option value="{{ fy.pk }}" {% if selected_fy.pk == fy.pk %}selected{% endif %}>{{ fy }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <span class="text-muted small">{{ total_count }} document{{ total_count|pluralize:"s" }} pour cet exercice</span>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if documents %}
+{% for month_key, month_data in documents %}
+<div class="card shadow-sm mb-3">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+        <h5 class="mb-0 h6">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder2-open me-1" viewBox="0 0 16 16">
+                <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7z"/>
+            </svg>
+            {{ month_data.label }}
+        </h5>
+        <span class="badge bg-primary">{{ month_data.count }} fichier{{ month_data.count|pluralize:"s" }}</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle" style="font-size: 0.88rem;">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 5%;"></th>
+                    <th style="width: 12%;">{% trans "Date" %}</th>
+                    <th style="width: 30%;">{% trans "Description" %}</th>
+                    <th style="width: 18%;">{% trans "Catégorie" %}</th>
+                    <th class="text-end" style="width: 12%;">{% trans "Montant" %}</th>
+                    <th style="width: 18%;">{% trans "Fichier" %}</th>
+                    <th class="text-end" style="width: 5%;">{% trans "Taille" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in month_data.entries %}
+                <tr>
+                    <td class="text-center">
+                        {% if doc.ext == "pdf" %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#dc3545" viewBox="0 0 16 16"><path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/></svg>
+                        {% elif doc.ext in "jpg,jpeg,png,gif,webp" %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#198754" viewBox="0 0 16 16"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/></svg>
+                        {% else %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#6c757d" viewBox="0 0 16 16"><path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/></svg>
+                        {% endif %}
+                    </td>
+                    <td>{{ doc.entry.date|date:"d/m/Y" }}</td>
+                    <td>{{ doc.entry.description }}</td>
+                    <td>
+                        <span class="badge {% if doc.entry.entry_type == 'income' %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ doc.entry.category.name }}
+                        </span>
+                    </td>
+                    <td class="text-end {% if doc.entry.entry_type == 'income' %}text-success{% else %}text-danger{% endif %} fw-bold">
+                        {% if doc.entry.entry_type == 'expense' %}-{% endif %}{{ doc.entry.amount|money }} &euro;
+                    </td>
+                    <td>
+                        <a href="{% url 'accounting:attachment_download' doc.entry.pk %}" class="text-decoration-none" title="Télécharger">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="me-1" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+                            </svg>
+                            {{ doc.filename|truncatechars:25 }}
+                        </a>
+                    </td>
+                    <td class="text-end text-muted small">{{ doc.size|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#94a3b8" class="mb-3" viewBox="0 0 16 16">
+            <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7z"/>
+        </svg>
+        <p class="text-muted mb-2">{% trans "Aucun document pour cet exercice." %}</p>
+        <p class="text-muted small">{% trans "Les justificatifs sont attachés lors de la création ou modification d'une écriture." %}</p>
+        <a href="{% url 'accounting:entry_create' %}" class="btn btn-primary btn-sm mt-2">{% trans "Nouvelle écriture" %}</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

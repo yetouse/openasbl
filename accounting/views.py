@@ -1,10 +1,12 @@
 import json
+import mimetypes
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from accounts.decorators import require_permission
 from accounts.models import PermissionLevel
@@ -440,3 +442,88 @@ def asset_snapshot_create(request, fiscal_year_pk):
     else:
         form = AssetSnapshotForm()
     return render(request, "accounting/asset_snapshot_form.html", {"form": form, "fiscal_year": fy})
+
+
+@login_required
+def document_list(request):
+    """Browse all attachments organized by fiscal year and month."""
+    org = request.user.profile.organization
+    fiscal_years = FiscalYear.objects.filter(organization=org).order_by("-start_date")
+    selected_fy_id = request.GET.get("fiscal_year")
+
+    if selected_fy_id:
+        selected_fy = get_object_or_404(FiscalYear, pk=selected_fy_id, organization=org)
+    else:
+        selected_fy = fiscal_years.filter(status="open").first() or fiscal_years.first()
+
+    documents = []
+    months = {}
+    total_count = 0
+
+    if selected_fy:
+        entries_with_attachments = (
+            Entry.objects.filter(fiscal_year=selected_fy)
+            .exclude(attachment="")
+            .select_related("category")
+            .order_by("date")
+        )
+        for entry in entries_with_attachments:
+            month_key = entry.date.strftime("%Y-%m")
+            month_label = entry.date.strftime("%B %Y").capitalize()
+            if month_key not in months:
+                months[month_key] = {"label": month_label, "entries": [], "count": 0}
+            filename = entry.attachment.name.split("/")[-1]
+            ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+            months[month_key]["entries"].append({
+                "entry": entry,
+                "filename": filename,
+                "ext": ext,
+                "size": _safe_file_size(entry.attachment),
+            })
+            months[month_key]["count"] += 1
+            total_count += 1
+
+        # Sort months chronologically
+        documents = sorted(months.items())
+
+    # Count total attachments across all fiscal years
+    all_count = Entry.objects.filter(
+        fiscal_year__organization=org
+    ).exclude(attachment="").count()
+
+    return render(request, "accounting/document_list.html", {
+        "fiscal_years": fiscal_years,
+        "selected_fy": selected_fy,
+        "documents": documents,
+        "total_count": total_count,
+        "all_count": all_count,
+    })
+
+
+def _safe_file_size(field):
+    """Return file size in human-readable format, or None if file missing."""
+    try:
+        size = field.size
+        if size < 1024:
+            return f"{size} o"
+        elif size < 1024 * 1024:
+            return f"{size / 1024:.0f} Ko"
+        else:
+            return f"{size / (1024 * 1024):.1f} Mo"
+    except (FileNotFoundError, OSError):
+        return None
+
+
+@login_required
+def attachment_download(request, pk):
+    """Secure download of an entry's attachment."""
+    entry = get_object_or_404(Entry, pk=pk, fiscal_year__organization=request.user.profile.organization)
+    if not entry.attachment:
+        raise Http404("Aucun justificatif pour cette écriture.")
+    try:
+        f = entry.attachment.open("rb")
+    except FileNotFoundError:
+        raise Http404("Fichier introuvable sur le serveur.")
+    filename = entry.attachment.name.split("/")[-1]
+    content_type, _ = mimetypes.guess_type(filename)
+    return FileResponse(f, content_type=content_type or "application/octet-stream", filename=filename)

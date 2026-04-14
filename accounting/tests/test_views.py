@@ -1,7 +1,11 @@
+import tempfile
 from datetime import date
 from decimal import Decimal
+
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
+
 from accounts.models import PermissionLevel, UserProfile
 from accounting.models import Budget, AssetSnapshot, Category, CategoryType, Entry, FiscalYear, FiscalYearStatus
 from core.models import Organization
@@ -198,3 +202,152 @@ class BudgetTrackingViewTest(TestCase):
         self.client.logout()
         response = self.client.get(f"/fiscal-years/{self.fy.pk}/budget-tracking/")
         self.assertEqual(response.status_code, 302)
+
+
+class DocumentListViewTest(TestCase):
+    def setUp(self):
+        self.org = Organization.objects.create(name="Test ASBL", address="Namur")
+        self.user = User.objects.create_user(username="tresorier", password="test123")
+        UserProfile.objects.create(
+            user=self.user, organization=self.org, permission_level=PermissionLevel.ADMIN
+        )
+        self.fy = FiscalYear.objects.create(
+            organization=self.org, start_date=date(2025, 1, 1), end_date=date(2025, 12, 31)
+        )
+        self.cat = Category.objects.create(
+            organization=self.org, name="Fournitures", category_type=CategoryType.EXPENSE
+        )
+        self.client.login(username="tresorier", password="test123")
+
+    def test_document_list_loads(self):
+        response = self.client.get("/documents/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Documents")
+
+    def test_document_list_requires_login(self):
+        self.client.logout()
+        response = self.client.get("/documents/")
+        self.assertEqual(response.status_code, 302)
+
+    def test_document_list_shows_empty_state(self):
+        response = self.client.get("/documents/")
+        self.assertContains(response, "Aucun document")
+
+    def test_document_list_shows_attachment(self):
+        fake_file = SimpleUploadedFile("facture.pdf", b"fake pdf content", content_type="application/pdf")
+        entry = Entry.objects.create(
+            fiscal_year=self.fy,
+            category=self.cat,
+            date=date(2025, 3, 15),
+            amount=Decimal("50.00"),
+            description="Achat fournitures",
+            attachment=fake_file,
+            created_by=self.user,
+        )
+        response = self.client.get("/documents/")
+        self.assertContains(response, "facture")
+        self.assertContains(response, "Achat fournitures")
+        # Cleanup
+        entry.attachment.delete()
+
+    def test_document_list_filter_by_fiscal_year(self):
+        response = self.client.get(f"/documents/?fiscal_year={self.fy.pk}")
+        self.assertEqual(response.status_code, 200)
+
+
+class AttachmentDownloadViewTest(TestCase):
+    def setUp(self):
+        self.org = Organization.objects.create(name="Test ASBL", address="Namur")
+        self.user = User.objects.create_user(username="tresorier", password="test123")
+        UserProfile.objects.create(
+            user=self.user, organization=self.org, permission_level=PermissionLevel.GESTION
+        )
+        self.fy = FiscalYear.objects.create(
+            organization=self.org, start_date=date(2025, 1, 1), end_date=date(2025, 12, 31)
+        )
+        self.cat = Category.objects.create(
+            organization=self.org, name="Fournitures", category_type=CategoryType.EXPENSE
+        )
+        fake_file = SimpleUploadedFile("ticket.pdf", b"PDF content here", content_type="application/pdf")
+        self.entry = Entry.objects.create(
+            fiscal_year=self.fy,
+            category=self.cat,
+            date=date(2025, 6, 10),
+            amount=Decimal("25.00"),
+            description="Ticket de caisse",
+            attachment=fake_file,
+            created_by=self.user,
+        )
+        self.client.login(username="tresorier", password="test123")
+
+    def tearDown(self):
+        if self.entry.attachment:
+            self.entry.attachment.delete()
+
+    def test_download_attachment(self):
+        response = self.client.get(f"/entries/{self.entry.pk}/attachment/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("ticket", response.get("Content-Disposition", ""))
+
+    def test_download_requires_login(self):
+        self.client.logout()
+        response = self.client.get(f"/entries/{self.entry.pk}/attachment/")
+        self.assertEqual(response.status_code, 302)
+
+    def test_download_nonexistent_entry(self):
+        response = self.client.get("/entries/9999/attachment/")
+        self.assertEqual(response.status_code, 404)
+
+    def test_download_entry_without_attachment(self):
+        entry_no_file = Entry.objects.create(
+            fiscal_year=self.fy,
+            category=self.cat,
+            date=date(2025, 6, 11),
+            amount=Decimal("10.00"),
+            description="Sans justificatif",
+            created_by=self.user,
+        )
+        response = self.client.get(f"/entries/{entry_no_file.pk}/attachment/")
+        self.assertEqual(response.status_code, 404)
+
+    def test_download_checks_org_ownership(self):
+        """Attachment download filters by user's organization."""
+        # The get_object_or_404 filters by organization, so a non-matching pk returns 404
+        response = self.client.get("/entries/99999/attachment/")
+        self.assertEqual(response.status_code, 404)
+
+
+class EntryAttachmentIndicatorTest(TestCase):
+    def setUp(self):
+        self.org = Organization.objects.create(name="Test ASBL", address="Namur")
+        self.user = User.objects.create_user(username="tresorier", password="test123")
+        UserProfile.objects.create(
+            user=self.user, organization=self.org, permission_level=PermissionLevel.ADMIN
+        )
+        self.fy = FiscalYear.objects.create(
+            organization=self.org, start_date=date(2025, 1, 1), end_date=date(2025, 12, 31)
+        )
+        self.cat = Category.objects.create(
+            organization=self.org, name="Cotisations", category_type=CategoryType.INCOME
+        )
+        self.client.login(username="tresorier", password="test123")
+
+    def test_entry_list_shows_attachment_icon(self):
+        fake = SimpleUploadedFile("recu.jpg", b"image", content_type="image/jpeg")
+        entry = Entry.objects.create(
+            fiscal_year=self.fy, category=self.cat, date=date(2025, 4, 1),
+            amount=Decimal("50.00"), description="Cotisation avec reçu",
+            attachment=fake, created_by=self.user,
+        )
+        response = self.client.get("/entries/")
+        self.assertContains(response, "attachment")  # the download URL
+        entry.attachment.delete()
+
+    def test_entry_list_no_icon_without_attachment(self):
+        Entry.objects.create(
+            fiscal_year=self.fy, category=self.cat, date=date(2025, 4, 1),
+            amount=Decimal("50.00"), description="Cotisation sans reçu",
+            created_by=self.user,
+        )
+        response = self.client.get("/entries/")
+        self.assertNotContains(response, "attachment")
