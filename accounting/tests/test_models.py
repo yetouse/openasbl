@@ -8,7 +8,7 @@ from core.models import Organization
 
 class FiscalYearModelTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
 
     def test_create_fiscal_year(self):
         fy = FiscalYear.objects.create(organization=self.org, start_date=date(2026, 1, 1), end_date=date(2026, 12, 31))
@@ -28,7 +28,7 @@ class FiscalYearModelTest(TestCase):
 
 class CategoryModelTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
 
     def test_create_income_category(self):
         cat = Category.objects.create(organization=self.org, name="Cotisations membres", category_type=CategoryType.INCOME)
@@ -40,7 +40,7 @@ class CategoryModelTest(TestCase):
 
 class EntryModelTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
         self.fy = FiscalYear.objects.create(organization=self.org, start_date=date(2026, 1, 1), end_date=date(2026, 12, 31))
         self.category = Category.objects.create(organization=self.org, name="Cotisations", category_type=CategoryType.INCOME)
         self.user = User.objects.create_user(username="tresorier", password="test123")
@@ -69,7 +69,7 @@ class EntryModelTest(TestCase):
 
 class BudgetModelTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
         self.fy = FiscalYear.objects.create(organization=self.org, start_date=date(2026, 1, 1), end_date=date(2026, 12, 31))
         self.category = Category.objects.create(organization=self.org, name="Cotisations", category_type=CategoryType.INCOME)
 
@@ -84,7 +84,7 @@ class BudgetModelTest(TestCase):
 
 class AssetSnapshotModelTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
         self.fy = FiscalYear.objects.create(organization=self.org, start_date=date(2026, 1, 1), end_date=date(2026, 12, 31))
 
     def test_create_snapshot(self):

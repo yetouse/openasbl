@@ -4,14 +4,14 @@ from core.models import Organization
 class OrganizationModelTest(TestCase):
     def test_create_organization(self):
         org = Organization.objects.create(
-            name="Royal Cercle de Voile de Dave",
-            address="Dave, Namur",
+            name="Mon ASBL",
+            address="Rue de la Loi 1, 1000 Bruxelles",
             enterprise_number="0123.456.789",
-            email="info@rcvd.be",
-            phone="+32 81 123456",
+            email="info@monasbl.be",
+            phone="+32 2 123456",
         )
-        self.assertEqual(org.name, "Royal Cercle de Voile de Dave")
-        self.assertEqual(str(org), "Royal Cercle de Voile de Dave")
+        self.assertEqual(org.name, "Mon ASBL")
+        self.assertEqual(str(org), "Mon ASBL")
 
     def test_enterprise_number_optional(self):
         org = Organization.objects.create(name="Test ASBL", address="Bruxelles")

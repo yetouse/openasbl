@@ -11,10 +11,10 @@ class SetupWizardTest(TestCase):
 
     def test_wizard_creates_org_and_admin(self):
         response = self.client.post("/core/setup/", {
-            "org_name": "RCVD", "org_address": "Dave, Namur",
-            "org_enterprise_number": "0123.456.789", "org_email": "info@rcvd.be", "org_phone": "",
+            "org_name": "Mon ASBL", "org_address": "Bruxelles",
+            "org_enterprise_number": "0123.456.789", "org_email": "info@monasbl.be", "org_phone": "",
             "admin_username": "tresorier", "admin_password": "securepass123",
-            "admin_first_name": "Jean", "admin_last_name": "Dupont", "admin_email": "jean@rcvd.be",
+            "admin_first_name": "Jean", "admin_last_name": "Dupont", "admin_email": "jean@monasbl.be",
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Organization.objects.exists())
@@ -30,7 +30,7 @@ class SetupWizardTest(TestCase):
 
 class OrganizationSettingsTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
         self.user = User.objects.create_user(username="admin", password="test123")
         UserProfile.objects.create(user=self.user, organization=self.org, permission_level=PermissionLevel.ADMIN)
         self.client.login(username="admin", password="test123")
@@ -38,7 +38,7 @@ class OrganizationSettingsTest(TestCase):
     def test_settings_page_loads(self):
         response = self.client.get("/core/settings/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "RCVD")
+        self.assertContains(response, "Mon ASBL")
 
     def test_non_admin_cannot_access(self):
         self.user.profile.permission_level = PermissionLevel.GESTION

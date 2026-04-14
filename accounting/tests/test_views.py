@@ -8,7 +8,7 @@ from core.models import Organization
 
 class DashboardViewTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
         self.user = User.objects.create_user(username="tresorier", password="test123")
         UserProfile.objects.create(user=self.user, organization=self.org, permission_level=PermissionLevel.ADMIN)
         self.client.login(username="tresorier", password="test123")
@@ -24,7 +24,7 @@ class DashboardViewTest(TestCase):
 
 class EntryListViewTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
         self.user = User.objects.create_user(username="tresorier", password="test123")
         UserProfile.objects.create(user=self.user, organization=self.org, permission_level=PermissionLevel.ADMIN)
         self.fy = FiscalYear.objects.create(organization=self.org, start_date=date(2026, 1, 1), end_date=date(2026, 12, 31))
@@ -36,7 +36,7 @@ class EntryListViewTest(TestCase):
 
 class EntryCreateViewTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
         self.user = User.objects.create_user(username="tresorier", password="test123")
         UserProfile.objects.create(user=self.user, organization=self.org, permission_level=PermissionLevel.GESTION)
         self.fy = FiscalYear.objects.create(organization=self.org, start_date=date(2026, 1, 1), end_date=date(2026, 12, 31))
@@ -65,7 +65,7 @@ class EntryCreateViewTest(TestCase):
 
 class FiscalYearViewTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
         self.user = User.objects.create_user(username="admin", password="test123")
         UserProfile.objects.create(user=self.user, organization=self.org, permission_level=PermissionLevel.ADMIN)
         self.client.login(username="admin", password="test123")
@@ -97,7 +97,7 @@ class FiscalYearViewTest(TestCase):
 
 class CategoryViewTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
         self.user = User.objects.create_user(username="admin", password="test123")
         UserProfile.objects.create(user=self.user, organization=self.org, permission_level=PermissionLevel.GESTION)
         self.client.login(username="admin", password="test123")
@@ -141,7 +141,7 @@ class CategoryViewTest(TestCase):
 
 class BudgetViewTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
         self.user = User.objects.create_user(username="admin", password="test123")
         UserProfile.objects.create(user=self.user, organization=self.org, permission_level=PermissionLevel.GESTION)
         self.fy = FiscalYear.objects.create(organization=self.org, start_date=date(2026, 1, 1), end_date=date(2026, 12, 31))
@@ -174,7 +174,7 @@ class BudgetViewTest(TestCase):
 
 class BudgetTrackingViewTest(TestCase):
     def setUp(self):
-        self.org = Organization.objects.create(name="RCVD", address="Dave")
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
         self.user = User.objects.create_user(username="admin", password="test123")
         UserProfile.objects.create(user=self.user, organization=self.org, permission_level=PermissionLevel.GESTION)
         self.fy = FiscalYear.objects.create(organization=self.org, start_date=date(2026, 1, 1), end_date=date(2026, 12, 31))
