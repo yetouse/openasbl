@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Budget — OpenASBL{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Budget — {{ fiscal_year }}</h1>
+    {% if previous_fy %}
+    <a href="?copy_from={{ previous_fy.pk }}" class="btn btn-outline-secondary btn-sm">
+        Copier le budget {{ previous_fy.start_date|date:"Y" }}
+    </a>
+    {% endif %}
+</div>
+
+<form method="post">
+    {% csrf_token %}
+
+    <h2 class="h5 mt-3 mb-3">Recettes</h2>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Catégorie</th>
+                    <th style="width: 200px;" class="text-end">Montant prévu (&euro;)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in income_items %}
+                <tr>
+                    <td>
+                        <label for="budget_{{ item.category.pk }}" class="form-label mb-0">{{ item.category.name }}</label>
+                        {% if item.category.description %}<br><small class="text-muted">{{ item.category.description }}</small>{% endif %}
+                    </td>
+                    <td>
+                        <input type="number" name="budget_{{ item.category.pk }}" id="budget_{{ item.category.pk }}"
+                               class="form-control form-control-sm text-end" step="0.01" min="0"
+                               value="{{ item.amount|default_if_none:'' }}"
+                               placeholder="0.00">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2 class="h5 mt-4 mb-3">Dépenses</h2>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Catégorie</th>
+                    <th style="width: 200px;" class="text-end">Montant prévu (&euro;)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in expense_items %}
+                <tr>
+                    <td>
+                        <label for="budget_{{ item.category.pk }}" class="form-label mb-0">{{ item.category.name }}</label>
+                        {% if item.category.description %}<br><small class="text-muted">{{ item.category.description }}</small>{% endif %}
+                    </td>
+                    <td>
+                        <input type="number" name="budget_{{ item.category.pk }}" id="budget_{{ item.category.pk }}"
+                               class="form-control form-control-sm text-end" step="0.01" min="0"
+                               value="{{ item.amount|default_if_none:'' }}"
+                               placeholder="0.00">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-success">Enregistrer le budget</button>
+        <a href="{% url 'accounting:fiscal_year_list' %}" class="btn btn-outline-secondary">Annuler</a>
+    </div>
+</form>
+{% endblock %}

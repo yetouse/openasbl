@@ -8,7 +8,8 @@ from openpyxl import load_workbook
 
 from accounting.models import Category, CategoryType, Entry, FiscalYear
 from core.models import Organization
-from reports.generators.excel import generate_journal_csv, generate_journal_excel
+from accounting.models import AssetSnapshot, Budget
+from reports.generators.excel import generate_annual_accounts_excel, generate_budget_tracking_excel, generate_journal_csv, generate_journal_excel
 
 
 class ExcelTestMixin:
@@ -54,3 +55,43 @@ class JournalCsvTest(ExcelTestMixin, TestCase):
         self.assertIn("Cotisation membre", lines[1])
         # Semicolon-delimited
         self.assertIn(";", lines[0])
+
+
+class BudgetTrackingExcelTest(ExcelTestMixin, TestCase):
+    def test_generates_valid_excel(self):
+        Budget.objects.create(
+            fiscal_year=self.fy,
+            category=self.cat_income,
+            planned_amount=Decimal("500.00"),
+        )
+        result = generate_budget_tracking_excel(self.fy)
+        self.assertIsInstance(result, bytes)
+        wb = load_workbook(io.BytesIO(result))
+        self.assertEqual(wb.sheetnames, ["Recettes", "Dépenses"])
+        ws = wb["Recettes"]
+        headers = [cell.value for cell in ws[1]]
+        self.assertEqual(headers, ["Catégorie", "Budget", "Réalisé", "Écart", "%"])
+
+    def test_empty_budget(self):
+        result = generate_budget_tracking_excel(self.fy)
+        self.assertIsInstance(result, bytes)
+
+
+class AnnualAccountsExcelTest(ExcelTestMixin, TestCase):
+    def test_generates_valid_excel(self):
+        AssetSnapshot.objects.create(
+            fiscal_year=self.fy,
+            date=date(2025, 12, 31),
+            cash=Decimal("500.00"),
+            bank=Decimal("10000.00"),
+        )
+        result = generate_annual_accounts_excel(self.fy)
+        self.assertIsInstance(result, bytes)
+        wb = load_workbook(io.BytesIO(result))
+        self.assertEqual(wb.sheetnames, ["Résumé", "Journal", "Patrimoine"])
+        ws_patrimony = wb["Patrimoine"]
+        self.assertEqual(ws_patrimony.cell(row=1, column=1).value, "État du patrimoine")
+
+    def test_empty_fiscal_year(self):
+        result = generate_annual_accounts_excel(self.fy)
+        self.assertIsInstance(result, bytes)

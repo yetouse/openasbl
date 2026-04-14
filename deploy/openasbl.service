@@ -1,0 +1,17 @@
+[Unit]
+Description=OpenASBL Gunicorn Daemon
+After=network.target
+
+[Service]
+User=openasbl
+Group=www-data
+WorkingDirectory=/opt/openasbl
+Environment="DJANGO_SECRET_KEY=CHANGE_ME_IN_PRODUCTION"
+Environment="DJANGO_DEBUG=False"
+Environment="DJANGO_ALLOWED_HOSTS=CHANGE_ME_YOUR_DOMAIN"
+ExecStart=/opt/openasbl/venv/bin/gunicorn openasbl.wsgi:application -c /opt/openasbl/deploy/gunicorn.conf.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -73,6 +73,62 @@ class JournalCsvViewTest(ReportViewTestMixin, TestCase):
         self.assertIn("csv", response["Content-Type"])
 
 
+class BudgetTrackingExcelViewTest(ReportViewTestMixin, TestCase):
+    def test_download_excel(self):
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(
+            reverse("reports:budget_tracking_excel"), {"fiscal_year": self.fy.pk}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("spreadsheetml", response["Content-Type"])
+
+
+class BudgetTrackingPdfViewTest(ReportViewTestMixin, TestCase):
+    def test_download_pdf(self):
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(
+            reverse("reports:budget_tracking_pdf"), {"fiscal_year": self.fy.pk}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+
+
+class AnnualAccountsPdfViewTest(ReportViewTestMixin, TestCase):
+    def test_download_pdf(self):
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(
+            reverse("reports:annual_accounts_pdf"), {"fiscal_year": self.fy.pk}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+
+
+class AnnualAccountsExcelViewTest(ReportViewTestMixin, TestCase):
+    def test_download_excel(self):
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(
+            reverse("reports:annual_accounts_excel"), {"fiscal_year": self.fy.pk}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("spreadsheetml", response["Content-Type"])
+
+
+class YearComparisonPdfViewTest(ReportViewTestMixin, TestCase):
+    def test_download_pdf(self):
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(
+            reverse("reports:year_comparison_pdf"), {"fiscal_year": self.fy.pk}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+
+    def test_download_pdf_all_years(self):
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(reverse("reports:year_comparison_pdf"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+
+
 class LoginRequiredTest(TestCase):
     def test_all_views_require_login(self):
         urls = [
@@ -82,6 +138,11 @@ class LoginRequiredTest(TestCase):
             reverse("reports:journal_csv"),
             reverse("reports:patrimony_pdf"),
             reverse("reports:monthly_ca_pdf"),
+            reverse("reports:budget_tracking_pdf"),
+            reverse("reports:budget_tracking_excel"),
+            reverse("reports:annual_accounts_pdf"),
+            reverse("reports:annual_accounts_excel"),
+            reverse("reports:year_comparison_pdf"),
         ]
         for url in urls:
             response = self.client.get(url)

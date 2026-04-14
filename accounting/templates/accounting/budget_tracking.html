@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load i18n accounting_filters %}
+
+{% block title %}Suivi budgétaire — OpenASBL{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{% trans "Suivi budgétaire" %}</h1>
+    <div class="d-flex gap-2">
+        <a href="{% url 'reports:budget_tracking_pdf' %}?fiscal_year={{ fiscal_year.pk }}" class="btn btn-outline-primary btn-sm" target="_blank">PDF</a>
+        <a href="{% url 'reports:budget_tracking_excel' %}?fiscal_year={{ fiscal_year.pk }}" class="btn btn-outline-primary btn-sm">Excel</a>
+    </div>
+</div>
+<p class="text-muted mb-4">Exercice {{ fiscal_year.start_date }} &rarr; {{ fiscal_year.end_date }}</p>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-muted small text-uppercase">Budget recettes</div>
+                <div class="fs-4 fw-bold text-success">{{ total_budget_income|money }} &euro;</div>
+                <div class="small text-muted">Réalisé : {{ total_actual_income|money }} &euro;</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-muted small text-uppercase">Budget dépenses</div>
+                <div class="fs-4 fw-bold text-danger">{{ total_budget_expense|money }} &euro;</div>
+                <div class="small text-muted">Réalisé : {{ total_actual_expense|money }} &euro;</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-muted small text-uppercase">Solde réalisé</div>
+                <div class="fs-4 fw-bold {% if actual_balance >= 0 %}text-success{% else %}text-danger{% endif %}">{{ actual_balance|money }} &euro;</div>
+                <div class="small text-muted">Budget : {{ budget_balance|money }} &euro;</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Income table -->
+<h2 class="h5 mt-4 mb-3">Recettes</h2>
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Catégorie</th>
+                <th class="text-end">Budget</th>
+                <th class="text-end">Réalisé</th>
+                <th class="text-end">Écart</th>
+                <th style="width: 120px;">Progression</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in income_rows %}
+            <tr>
+                <td>{{ row.category.name }}</td>
+                <td class="text-end">{{ row.planned|money }} &euro;</td>
+                <td class="text-end">{{ row.actual|money }} &euro;</td>
+                <td class="text-end {% if row.diff >= 0 %}text-success{% else %}text-danger{% endif %}">{{ row.diff|money }} &euro;</td>
+                <td>
+                    {% if row.pct != None %}
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar {% if row.pct >= 100 %}bg-success{% elif row.pct >= 50 %}bg-primary{% else %}bg-warning{% endif %}" role="progressbar" style="width: {% if row.pct > 100 %}100{% else %}{{ row.pct }}{% endif %}%;" aria-valuenow="{{ row.pct }}" aria-valuemin="0" aria-valuemax="100">{{ row.pct }}%</div>
+                    </div>
+                    {% else %}
+                    <span class="text-muted small">&mdash;</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-muted">Aucune catégorie de recette.</td></tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="table-light fw-bold">
+                <td>Total</td>
+                <td class="text-end">{{ total_budget_income|money }} &euro;</td>
+                <td class="text-end">{{ total_actual_income|money }} &euro;</td>
+                <td class="text-end {% if total_actual_income >= total_budget_income %}text-success{% else %}text-danger{% endif %}">
+                    {% widthratio total_actual_income 1 1 as ai %}
+                    {% widthratio total_budget_income 1 1 as bi %}
+                </td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<!-- Expense table -->
+<h2 class="h5 mt-4 mb-3">Dépenses</h2>
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Catégorie</th>
+                <th class="text-end">Budget</th>
+                <th class="text-end">Réalisé</th>
+                <th class="text-end">Écart</th>
+                <th style="width: 120px;">Progression</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in expense_rows %}
+            <tr>
+                <td>{{ row.category.name }}</td>
+                <td class="text-end">{{ row.planned|money }} &euro;</td>
+                <td class="text-end">{{ row.actual|money }} &euro;</td>
+                <td class="text-end {% if row.diff > 0 %}text-danger{% elif row.diff < 0 %}text-success{% endif %}">{{ row.diff|money }} &euro;</td>
+                <td>
+                    {% if row.pct != None %}
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar {% if row.pct > 100 %}bg-danger{% elif row.pct >= 75 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {% if row.pct > 100 %}100{% else %}{{ row.pct }}{% endif %}%;" aria-valuenow="{{ row.pct }}" aria-valuemin="0" aria-valuemax="100">{{ row.pct }}%</div>
+                    </div>
+                    {% else %}
+                    <span class="text-muted small">&mdash;</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-muted">Aucune catégorie de dépense.</td></tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="table-light fw-bold">
+                <td>Total</td>
+                <td class="text-end">{{ total_budget_expense|money }} &euro;</td>
+                <td class="text-end">{{ total_actual_expense|money }} &euro;</td>
+                <td class="text-end {% if total_actual_expense > total_budget_expense %}text-danger{% else %}text-success{% endif %}"></td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'accounting:fiscal_year_list' %}" class="btn btn-outline-secondary">&larr; Retour aux exercices</a>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n accounting_filters %}
 
 {% block title %}Tableau de bord — OpenASBL{% endblock %}
 
@@ -15,15 +15,15 @@
                 <div class="card bg-light">
                     <div class="card-body text-center">
                         <p class="text-muted mb-1 small">Recettes</p>
-                        <p class="text-success fw-bold fs-5 mb-0">{{ summary.income }} &euro;</p>
+                        <p class="text-success fw-bold fs-5 mb-0">{{ summary.income|money }} &euro;</p>
                     </div>
                 </div>
             </div>
             <div class="col-sm-6 col-lg-3">
                 <div class="card bg-light">
                     <div class="card-body text-center">
-                        <p class="text-muted mb-1 small">Depenses</p>
-                        <p class="text-danger fw-bold fs-5 mb-0">{{ summary.expenses }} &euro;</p>
+                        <p class="text-muted mb-1 small">Dépenses</p>
+                        <p class="text-danger fw-bold fs-5 mb-0">{{ summary.expenses|money }} &euro;</p>
                     </div>
                 </div>
             </div>
@@ -31,14 +31,14 @@
                 <div class="card bg-light">
                     <div class="card-body text-center">
                         <p class="text-muted mb-1 small">Solde</p>
-                        <p class="{% if summary.balance >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold fs-5 mb-0">{{ summary.balance }} &euro;</p>
+                        <p class="{% if summary.balance >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold fs-5 mb-0">{{ summary.balance|money }} &euro;</p>
                     </div>
                 </div>
             </div>
             <div class="col-sm-6 col-lg-3">
                 <div class="card bg-light">
                     <div class="card-body text-center">
-                        <p class="text-muted mb-1 small">Ecritures</p>
+                        <p class="text-muted mb-1 small">Écritures</p>
                         <p class="fw-bold fs-5 mb-0">{{ summary.entry_count }}</p>
                     </div>
                 </div>
@@ -46,14 +46,78 @@
         </div>
     </div>
 </div>
+
+{% if budget_summary %}
+<!-- Budget progress -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="card-title h5 mb-0">Suivi budgétaire</h2>
+            <a href="{% url 'accounting:budget_tracking' current_fy.pk %}" class="btn btn-outline-primary btn-sm">Détails</a>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted">Recettes</span>
+                    <span>{{ budget_summary.actual_income|money }} / {{ budget_summary.budget_income|money }} &euro;</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {% if budget_summary.income_pct > 100 %}100{% else %}{{ budget_summary.income_pct }}{% endif %}%;" aria-valuenow="{{ budget_summary.income_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="text-end small text-muted mt-1">{{ budget_summary.income_pct }}%</div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted">Dépenses</span>
+                    <span>{{ budget_summary.actual_expense|money }} / {{ budget_summary.budget_expense|money }} &euro;</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar {% if budget_summary.expense_pct > 100 %}bg-danger{% elif budget_summary.expense_pct > 75 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {% if budget_summary.expense_pct > 100 %}100{% else %}{{ budget_summary.expense_pct }}{% endif %}%;" aria-valuenow="{{ budget_summary.expense_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="text-end small text-muted mt-1">{{ budget_summary.expense_pct }}%</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if recent_entries %}
+<!-- Recent entries -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h2 class="card-title h5 mb-3">Dernières écritures</h2>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                    <tr><th>Date</th><th>Description</th><th>Catégorie</th><th class="text-end">Montant</th></tr>
+                </thead>
+                <tbody>
+                    {% for entry in recent_entries %}
+                    <tr>
+                        <td>{{ entry.date }}</td>
+                        <td>{{ entry.description }}</td>
+                        <td><span class="badge {% if entry.entry_type == 'income' %}bg-success{% else %}bg-danger{% endif %}">{{ entry.category.name }}</span></td>
+                        <td class="text-end {% if entry.entry_type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                            {% if entry.entry_type == 'expense' %}-{% endif %}{{ entry.amount|money }} &euro;
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="d-flex gap-2">
-    <a href="{% url 'accounting:entry_create' %}" class="btn btn-primary">Nouvelle ecriture</a>
-    <a href="{% url 'accounting:entry_list' %}?fiscal_year={{ current_fy.pk }}" class="btn btn-outline-primary">Voir les ecritures</a>
+    <a href="{% url 'accounting:entry_create' %}" class="btn btn-primary">Nouvelle écriture</a>
+    <a href="{% url 'accounting:entry_list' %}?fiscal_year={{ current_fy.pk }}" class="btn btn-outline-primary">Voir les écritures</a>
+    <a href="{% url 'reports:report_select' %}" class="btn btn-outline-secondary">Rapports</a>
 </div>
 {% else %}
 <div class="card shadow-sm">
     <div class="card-body">
-        <p class="text-muted mb-0">Aucun exercice comptable ouvert. Creez-en un pour commencer.</p>
+        <p class="text-muted mb-0">Aucun exercice comptable ouvert. <a href="{% url 'accounting:fiscal_year_create' %}">Créez-en un</a> pour commencer.</p>
     </div>
 </div>
 {% endif %}

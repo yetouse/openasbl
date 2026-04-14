@@ -25,9 +25,9 @@
                 <h2 class="card-title h6">Journal comptable</h2>
                 <p class="text-muted small">Toutes les écritures de l'exercice avec totaux.</p>
                 <div class="d-flex gap-2 flex-wrap">
-                    <a id="journal-pdf" class="btn btn-primary btn-sm" href="#">PDF</a>
-                    <a id="journal-excel" class="btn btn-primary btn-sm" href="#">Excel</a>
-                    <a id="journal-csv" class="btn btn-primary btn-sm" href="#">CSV</a>
+                    <a id="journal-pdf" class="btn btn-primary btn-sm" href="#" target="_blank">PDF</a>
+                    <a id="journal-excel" class="btn btn-primary btn-sm" href="#" target="_blank">Excel</a>
+                    <a id="journal-csv" class="btn btn-primary btn-sm" href="#" target="_blank">CSV</a>
                 </div>
             </div>
         </div>
@@ -40,7 +40,7 @@
                 <h2 class="card-title h6">État du patrimoine</h2>
                 <p class="text-muted small">Actifs, dettes et valeur nette.</p>
                 <div class="d-flex gap-2">
-                    <a id="patrimony-pdf" class="btn btn-primary btn-sm" href="#">PDF</a>
+                    <a id="patrimony-pdf" class="btn btn-primary btn-sm" href="#" target="_blank">PDF</a>
                 </div>
             </div>
         </div>
@@ -70,7 +70,48 @@
                     <select id="year-select" class="form-select form-select-sm" style="width: auto;"></select>
                 </div>
                 <div class="d-flex gap-2">
-                    <a id="monthly-ca-pdf" class="btn btn-primary btn-sm" href="#">PDF</a>
+                    <a id="monthly-ca-pdf" class="btn btn-primary btn-sm" href="#" target="_blank">PDF</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Suivi budgétaire -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="card-title h6">Suivi budgétaire</h2>
+                <p class="text-muted small">Comparaison budget prévisionnel vs réalisé par catégorie.</p>
+                <div class="d-flex gap-2">
+                    <a id="budget-tracking-pdf" class="btn btn-primary btn-sm" href="#" target="_blank">PDF</a>
+                    <a id="budget-tracking-excel" class="btn btn-primary btn-sm" href="#" target="_blank">Excel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comptes annuels -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="card-title h6">Comptes annuels</h2>
+                <p class="text-muted small">Document légal : résumé, ventilation par catégorie, patrimoine et journal.</p>
+                <div class="d-flex gap-2">
+                    <a id="annual-accounts-pdf" class="btn btn-primary btn-sm" href="#" target="_blank">PDF</a>
+                    <a id="annual-accounts-excel" class="btn btn-primary btn-sm" href="#" target="_blank">Excel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparaison par exercice -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="card-title h6">Comparaison par exercice</h2>
+                <p class="text-muted small">Comparaison des recettes et dépenses entre exercices.</p>
+                <div class="d-flex gap-2">
+                    <a id="year-comparison-pdf" class="btn btn-primary btn-sm" href="#" target="_blank">PDF</a>
                 </div>
             </div>
         </div>
@@ -109,6 +150,17 @@
         const month = monthSelect.value;
         const year = yearSelect.value;
         document.getElementById('monthly-ca-pdf').href = '{% url "reports:monthly_ca_pdf" %}?fiscal_year=' + fy + '&year=' + year + '&month=' + month;
+        document.getElementById('budget-tracking-pdf').href = '{% url "reports:budget_tracking_pdf" %}?fiscal_year=' + fy;
+        document.getElementById('budget-tracking-excel').href = '{% url "reports:budget_tracking_excel" %}?fiscal_year=' + fy;
+        document.getElementById('annual-accounts-pdf').href = '{% url "reports:annual_accounts_pdf" %}?fiscal_year=' + fy;
+        document.getElementById('annual-accounts-excel').href = '{% url "reports:annual_accounts_excel" %}?fiscal_year=' + fy;
+
+        // Year comparison: include all fiscal years
+        var allFys = [];
+        for (var i = 0; i < fySelect.options.length; i++) {
+            if (fySelect.options[i].value) allFys.push('fiscal_year=' + fySelect.options[i].value);
+        }
+        document.getElementById('year-comparison-pdf').href = '{% url "reports:year_comparison_pdf" %}?' + allFys.join('&');
     }
 
     fySelect.addEventListener('change', function() {

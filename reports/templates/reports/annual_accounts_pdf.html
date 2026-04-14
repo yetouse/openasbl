@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Comptes annuels</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; font-size: 11px; color: #1e293b; line-height: 1.4; margin: 20px; }
+        h1 { font-size: 20px; margin-bottom: 4px; }
+        h2 { font-size: 14px; color: #64748b; margin-bottom: 16px; font-weight: 400; }
+        h3 { font-size: 14px; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        th, td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        th { background: #f8fafc; font-weight: 600; font-size: 10px; text-transform: uppercase; }
+        .num { text-align: right; }
+        .positive { color: #16a34a; }
+        .negative { color: #dc2626; }
+        .totals td { font-weight: 700; border-top: 2px solid #1e293b; }
+        .section-header td { font-weight: 700; background: #f1f5f9; }
+        .net-worth td { font-weight: 700; border-top: 2px solid #1e293b; font-size: 13px; }
+        .summary { display: flex; gap: 24px; margin-bottom: 16px; }
+        .summary-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; min-width: 140px; }
+        .summary-card .label { font-size: 10px; text-transform: uppercase; color: #64748b; }
+        .summary-card .value { font-size: 16px; font-weight: 700; margin-top: 4px; }
+        .page-break { page-break-before: always; }
+        .header-info { font-size: 10px; color: #64748b; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 8px;">
+        {% if logo_path %}<img src="file://{{ logo_path }}" style="height: 60px;" alt="">{% endif %}
+        <div>
+            <h1 style="margin-bottom: 2px;">Comptes annuels</h1>
+            <h2 style="margin-bottom: 0;">{{ organization.name }} &mdash; Exercice {{ fiscal_year.start_date }} &rarr; {{ fiscal_year.end_date }}</h2>
+        </div>
+    </div>
+    <div class="header-info">
+        {% if organization.address %}{{ organization.address }}<br>{% endif %}
+        {% if organization.enterprise_number %}N&deg; entreprise : {{ organization.enterprise_number }}{% endif %}
+    </div>
+
+    <!-- Résumé -->
+    <div class="summary">
+        <div class="summary-card">
+            <div class="label">Total recettes</div>
+            <div class="value positive">{{ total_income }} &euro;</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Total dépenses</div>
+            <div class="value negative">{{ total_expense }} &euro;</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">Résultat</div>
+            <div class="value {% if balance >= 0 %}positive{% else %}negative{% endif %}">{{ balance }} &euro;</div>
+        </div>
+    </div>
+
+    <!-- Ventilation par catégorie -->
+    <h3>I. Recettes par catégorie</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Catégorie</th>
+                <th class="num">Montant</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in income_summary %}
+            <tr>
+                <td>{{ row.name }}</td>
+                <td class="num">{{ row.total }} &euro;</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2" style="text-align:center; color:#64748b;">Aucune recette</td></tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="totals">
+                <td>TOTAL RECETTES</td>
+                <td class="num">{{ total_income }} &euro;</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <h3>II. Dépenses par catégorie</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Catégorie</th>
+                <th class="num">Montant</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in expense_summary %}
+            <tr>
+                <td>{{ row.name }}</td>
+                <td class="num">{{ row.total }} &euro;</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2" style="text-align:center; color:#64748b;">Aucune dépense</td></tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="totals">
+                <td>TOTAL DÉPENSES</td>
+                <td class="num">{{ total_expense }} &euro;</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- État du patrimoine -->
+    <h3>III. État du patrimoine</h3>
+    {% if closing_snapshot %}
+    <table style="max-width: 500px;">
+        <thead>
+            <tr>
+                <th>Poste</th>
+                {% if opening_snapshot %}<th class="num">Début exercice</th>{% endif %}
+                <th class="num">Fin exercice</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="section-header"><td colspan="{% if opening_snapshot %}3{% else %}2{% endif %}">Actifs</td></tr>
+            <tr>
+                <td>Caisse</td>
+                {% if opening_snapshot %}<td class="num">{{ opening_snapshot.cash }} &euro;</td>{% endif %}
+                <td class="num">{{ closing_snapshot.cash }} &euro;</td>
+            </tr>
+            <tr>
+                <td>Banque</td>
+                {% if opening_snapshot %}<td class="num">{{ opening_snapshot.bank }} &euro;</td>{% endif %}
+                <td class="num">{{ closing_snapshot.bank }} &euro;</td>
+            </tr>
+            <tr>
+                <td>Créances</td>
+                {% if opening_snapshot %}<td class="num">{{ opening_snapshot.receivables }} &euro;</td>{% endif %}
+                <td class="num">{{ closing_snapshot.receivables }} &euro;</td>
+            </tr>
+            <tr class="section-header"><td colspan="{% if opening_snapshot %}3{% else %}2{% endif %}">Passifs</td></tr>
+            <tr>
+                <td>Dettes</td>
+                {% if opening_snapshot %}<td class="num">{{ opening_snapshot.debts }} &euro;</td>{% endif %}
+                <td class="num">{{ closing_snapshot.debts }} &euro;</td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr class="net-worth">
+                <td>Valeur nette</td>
+                {% if opening_snapshot %}
+                <td class="num {% if opening_snapshot.net_worth >= 0 %}positive{% else %}negative{% endif %}">{{ opening_snapshot.net_worth }} &euro;</td>
+                {% endif %}
+                <td class="num {% if closing_snapshot.net_worth >= 0 %}positive{% else %}negative{% endif %}">{{ closing_snapshot.net_worth }} &euro;</td>
+            </tr>
+        </tfoot>
+    </table>
+    {% else %}
+    <p style="color:#64748b;">Aucun relevé de patrimoine disponible pour cet exercice.</p>
+    {% endif %}
+
+    <!-- Journal détaillé -->
+    <div class="page-break"></div>
+    <h3>IV. Journal des recettes et dépenses</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Catégorie</th>
+                <th class="num">Recette</th>
+                <th class="num">Dépense</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            <tr>
+                <td>{{ entry.date }}</td>
+                <td>{{ entry.description }}</td>
+                <td>{{ entry.category.name }}</td>
+                <td class="num">{% if entry.entry_type == "income" %}{{ entry.amount }} &euro;{% endif %}</td>
+                <td class="num">{% if entry.entry_type == "expense" %}{{ entry.amount }} &euro;{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center; color:#64748b;">Aucune écriture</td></tr>
+            {% endfor %}
+        </tbody>
+        {% if entries %}
+        <tfoot>
+            <tr class="totals">
+                <td colspan="3">TOTAUX</td>
+                <td class="num">{{ total_income }} &euro;</td>
+                <td class="num">{{ total_expense }} &euro;</td>
+            </tr>
+        </tfoot>
+        {% endif %}
+    </table>
+</body>
+</html>

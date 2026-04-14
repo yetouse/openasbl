@@ -13,6 +13,7 @@ urlpatterns = [
     path("fiscal-years/<int:pk>/close/", views.fiscal_year_close, name="fiscal_year_close"),
     path("fiscal-years/<int:fiscal_year_pk>/budget/create/", views.budget_create, name="budget_create"),
     path("fiscal-years/<int:fiscal_year_pk>/asset-snapshot/create/", views.asset_snapshot_create, name="asset_snapshot_create"),
+    path("fiscal-years/<int:pk>/budget-tracking/", views.budget_tracking, name="budget_tracking"),
     path("categories/", views.category_list, name="category_list"),
     path("categories/create/", views.category_create, name="category_create"),
     path("categories/<int:pk>/edit/", views.category_edit, name="category_edit"),

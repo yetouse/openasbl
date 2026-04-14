@@ -44,7 +44,7 @@ class Category(models.Model):
         verbose_name = "Cat\u00e9gorie"
         verbose_name_plural = "Cat\u00e9gories"
         ordering = ["category_type", "name"]
-        unique_together = [("organization", "name")]
+        unique_together = [("organization", "name", "category_type")]
 
     def __str__(self):
         return f"{self.name} ({self.get_category_type_display()})"
