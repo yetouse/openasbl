@@ -29,6 +29,9 @@
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'report_select' %}active{% endif %}" href="{% url 'reports:report_select' %}">{% trans "Rapports" %}</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'guide_asbl' %}active{% endif %}" href="{% url 'help:guide_asbl' %}">{% trans "Guide ASBL" %}</a>
+                </li>
                 {% if user.profile.can_manage_users %}
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'user_list' %}active{% endif %}" href="{% url 'accounts:user_list' %}">{% trans "Utilisateurs" %}</a>
