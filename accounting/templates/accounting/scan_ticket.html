@@ -50,7 +50,7 @@
                 {# ── Step 2: Verify & save ── #}
                 {% if ocr_warning %}
                 <div class="alert alert-warning">
-                    Certains champs n'ont pas pu être extraits automatiquement. Veuillez les compléter manuellement.
+                    {% if ocr_warning_message %}{{ ocr_warning_message }}{% else %}Certains champs n'ont pas pu être extraits automatiquement. Veuillez les compléter manuellement.{% endif %}
                 </div>
                 {% endif %}
 
