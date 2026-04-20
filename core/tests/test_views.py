@@ -45,3 +45,13 @@ class OrganizationSettingsTest(TestCase):
         self.user.profile.save()
         response = self.client.get("/core/settings/")
         self.assertEqual(response.status_code, 403)
+
+
+class VersionFooterTest(TestCase):
+    def test_version_appears_in_footer(self):
+        Organization.objects.create(name="Test ASBL", address="Bxl")
+        response = self.client.get("/accounts/login/")
+        self.assertEqual(response.status_code, 200)
+        from django.conf import settings
+        expected = (settings.BASE_DIR / "VERSION").read_text(encoding="utf-8").strip()
+        self.assertContains(response, f"v{expected}")
