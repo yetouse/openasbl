@@ -9,7 +9,7 @@ import re
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageEnhance, ImageFilter, UnidentifiedImageError
 
 try:
     import pytesseract
@@ -51,16 +51,28 @@ def extract_text_from_image(image_file):
 
     try:
         image = Image.open(image_file)
-        image = preprocess_image(image)
+    except UnidentifiedImageError:
+        raise RuntimeError(
+            "L'image n'a pas pu être lue. Format non supporté ou fichier corrompu."
+        )
+
+    image = preprocess_image(image)
+
+    try:
         text = pytesseract.image_to_string(image, lang="fra")
-        return text.strip()
     except pytesseract.TesseractNotFoundError:
         raise RuntimeError(
             "Tesseract OCR n'est pas installé sur le serveur. "
             "Installez-le avec: sudo apt install tesseract-ocr tesseract-ocr-fra"
         )
-    except Exception:
-        return ""
+    except pytesseract.TesseractError as e:
+        raise RuntimeError(
+            f"Erreur Tesseract lors de la lecture du ticket : {e}. "
+            "Vérifiez que le paquet de langue française est installé "
+            "(sudo apt install tesseract-ocr-fra)."
+        )
+
+    return text.strip()
 
 
 def _normalize_amount(raw):

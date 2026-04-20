@@ -69,6 +69,7 @@ Développée initialement pour le [Royal Cercle de Voile de Dave](https://www.ro
 - Python 3.12+
 - pip
 - Tesseract OCR (pour le scan de tickets) : `sudo apt install tesseract-ocr tesseract-ocr-fra`
+  Les deux paquets sont requis. Sans `tesseract-ocr-fra`, le scan affiche une erreur explicite.
 
 ### Mise en place
 

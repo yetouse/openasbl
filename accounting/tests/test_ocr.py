@@ -5,6 +5,7 @@ from datetime import date
 from decimal import Decimal
 from unittest.mock import patch
 
+import pytesseract
 from django.test import TestCase
 from PIL import Image
 
@@ -13,6 +14,7 @@ from accounting.ocr import (
     extract_date,
     extract_description,
     extract_from_image,
+    extract_text_from_image,
     preprocess_image,
 )
 
@@ -154,3 +156,42 @@ class ExtractFromImageTest(TestCase):
         self.assertIsNone(result["date"])
         self.assertEqual(result["description"], "")
         self.assertEqual(result["raw_text"], "")
+
+
+class ExtractTextErrorHandlingTest(TestCase):
+    """Errors must surface to the caller, not be swallowed into empty strings."""
+
+    def _png_buffer(self):
+        img = Image.new("RGB", (50, 50), color="white")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        buf.seek(0)
+        return buf
+
+    @patch("accounting.ocr.pytesseract.image_to_string")
+    def test_tesseract_error_raises_runtime_error(self, mock_ocr):
+        mock_ocr.side_effect = pytesseract.TesseractError(
+            1, "Error opening data file fra.traineddata"
+        )
+
+        with self.assertRaises(RuntimeError) as ctx:
+            extract_text_from_image(self._png_buffer())
+
+        message = str(ctx.exception)
+        self.assertIn("Tesseract", message)
+        self.assertIn("fra.traineddata", message)
+
+    def test_invalid_image_raises_runtime_error(self):
+        bad = io.BytesIO(b"not an image at all")
+
+        with self.assertRaises(RuntimeError) as ctx:
+            extract_text_from_image(bad)
+
+        self.assertIn("image", str(ctx.exception).lower())
+
+    @patch("accounting.ocr.Image.open")
+    def test_unknown_exception_propagates(self, mock_open):
+        mock_open.side_effect = OSError("disk read failure")
+
+        with self.assertRaises(OSError):
+            extract_text_from_image(self._png_buffer())

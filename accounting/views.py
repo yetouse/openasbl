@@ -608,12 +608,20 @@ def scan_ticket(request):
         form.fields["category"].queryset = org.categories.all()
 
         ocr_warning = not data["amount"] or not data["date"]
+        if not data["raw_text"] or len(data["raw_text"]) < 10:
+            ocr_warning_message = (
+                "Aucun texte n'a pu être extrait de l'image. "
+                "Réessayez avec une photo plus nette, bien cadrée et bien éclairée."
+            )
+        else:
+            ocr_warning_message = ""
 
         return render(request, "accounting/scan_ticket.html", {
             "step": "verify",
             "form": form,
             "raw_text": data["raw_text"],
             "ocr_warning": ocr_warning,
+            "ocr_warning_message": ocr_warning_message,
             "temp_image_path": temp_path,
         })
 
