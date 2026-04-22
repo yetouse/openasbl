@@ -125,34 +125,44 @@ def extract_amount(text):
     """
     Extract the most likely total amount from OCR text.
 
-    Looks for decimal numbers (e.g., 14,50 or 14.50 or 1 234,56).
-    Returns the largest amount found (likely the total).
+    Cherche d'abord des mots-clés de total (À PAYER, TOTAL, etc.),
+    sinon retourne le plus grand montant trouvé.
 
     Returns:
         Decimal or None
     """
+    # 1. Chercher les mots-clés de total sur la même ligne
+    total_keywords = [
+        r"(?:à\s*payer|a\s*payer|total\s*(?:marchandises|ttc|tva\s*incluse)?|montant\s*total|net\s*à\s*payer)\s*[:\-]?\s*([\d\s.,]+)",
+    ]
+    for pattern in total_keywords:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            raw = _normalize_amount(match.group(1).strip())
+            try:
+                amount = Decimal(raw)
+                if amount > 0:
+                    return amount
+            except InvalidOperation:
+                continue
+
+    # 2. Fallback : plus grand montant trouvé
     patterns = [
         r"(\d{1,3}(?:[. ]\d{3})*[.,]\d{2})\b",
         r"\b(\d+[.,]\d{2})\b",
     ]
-
     amounts = []
     for pattern in patterns:
         for match in re.finditer(pattern, text):
-            raw = match.group(1)
-            raw = _normalize_amount(raw)
+            raw = _normalize_amount(match.group(1))
             try:
                 amount = Decimal(raw)
-                if amount > 0:
+                if 0 < amount < 10000:  # sanity check
                     amounts.append(amount)
             except InvalidOperation:
                 continue
 
-    if not amounts:
-        return None
-
-    # Deduplicate and return the largest (most likely the total)
-    return max(set(amounts))
+    return max(set(amounts)) if amounts else None
 
 
 def extract_date(text):
@@ -196,22 +206,44 @@ def extract_description(text):
     """
     Extract a description from OCR text.
 
-    Takes the first non-empty, non-numeric line as the store/vendor name.
+    Cherche d'abord des noms de magasins connus ou des patterns
+    typiques (ligne en majuscules courte, nom de ville, etc.).
+    Sinon prend la première ligne lisible.
 
     Returns:
         str (may be empty)
     """
-    for line in text.split("\n"):
-        line = line.strip()
-        if not line:
-            continue
-        # Skip lines that are only numbers, dates, or very short
-        if re.match(r"^[\d/.\-,: €$%]+$", line):
-            continue
-        if len(line) < 3:
-            continue
-        # Clean up and truncate
-        return line[:200]
+    lines = [l.strip() for l in text.split("\n") if l.strip()]
+
+    # 1. Chercher des noms de magasins/enseignes connus
+    known_stores = [
+        "colruyt", "delhaize", "carrefour", "lidl", "aldi", "proxy",
+        "spar", "okay", "cora", "match", "louis delhaize", "albert heijn",
+        "action", "brico", "ikea", "fnac", "media markt", "decathlon",
+        "shell", "q8", "total", "texaco",
+    ]
+    for line in lines[:20]:  # chercher dans les 20 premières lignes
+        line_lower = line.lower()
+        for store in known_stores:
+            if store in line_lower:
+                # Nettoyer et retourner
+                clean = re.sub(r'[^\w\s&.\'-]', ' ', line).strip()
+                if len(clean) >= 3:
+                    return clean[:200]
+
+    # 2. Prendre la première ligne qui ressemble à un nom propre
+    # (uppercase, pas que des chiffres, longueur raisonnable)
+    for line in lines[:15]:
+        if re.match(r"^[^\d]{3,}", line) and not re.match(r"^[a-z]", line):
+            if not re.match(r"^[\d/.:\-,€$ ]+$", line) and len(line) >= 3:
+                clean = re.sub(r'[^\w\s&.\'-]', ' ', line).strip()
+                if len(clean) >= 3:
+                    return clean[:200]
+
+    # 3. Fallback : première ligne non vide non numérique
+    for line in lines:
+        if not re.match(r"^[\d/.:\-,€$ ]+$", line) and len(line) >= 3:
+            return line[:200]
 
     return ""
 
