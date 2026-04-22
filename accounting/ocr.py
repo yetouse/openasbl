@@ -9,7 +9,7 @@ import re
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
-from PIL import Image, ImageEnhance, ImageFilter, UnidentifiedImageError
+from PIL import Image, ImageEnhance, ImageFilter, ImageOps, UnidentifiedImageError
 
 try:
     import pytesseract
@@ -19,11 +19,35 @@ except ImportError:
     TESSERACT_AVAILABLE = False
 
 
+def fix_orientation(image):
+    """
+    Corrige l'orientation de l'image via les métadonnées EXIF,
+    puis via la détection automatique de Tesseract (OSD).
+    """
+    # 1. Correction EXIF (photos de téléphone souvent mal orientées)
+    try:
+        image = ImageOps.exif_transpose(image)
+    except Exception:
+        pass
+
+    # 2. Détection d'orientation via Tesseract OSD
+    try:
+        osd = pytesseract.image_to_osd(image, output_type=pytesseract.Output.DICT)
+        angle = osd.get("rotate", 0)
+        if angle != 0:
+            image = image.rotate(-angle, expand=True)
+    except Exception:
+        pass  # OSD peut échouer sur des images très dégradées — on continue quand même
+
+    return image
+
+
 def preprocess_image(image):
     """
     Pre-process image for better OCR results.
-    Converts to grayscale, enhances contrast, and sharpens.
+    Fixes orientation, converts to grayscale, enhances contrast, and sharpens.
     """
+    image = fix_orientation(image)
     image = image.convert("L")
     image = ImageEnhance.Contrast(image).enhance(2.0)
     image = image.filter(ImageFilter.SHARPEN)
