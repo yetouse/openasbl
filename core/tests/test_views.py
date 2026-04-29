@@ -1,5 +1,7 @@
+from unittest.mock import patch
+
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from accounts.models import PermissionLevel, UserProfile
 from core.models import Organization
 
@@ -55,3 +57,32 @@ class VersionFooterTest(TestCase):
         from django.conf import settings
         expected = (settings.BASE_DIR / "VERSION").read_text(encoding="utf-8").strip()
         self.assertContains(response, f"v{expected}")
+
+
+class UpdateBannerTest(TestCase):
+    def setUp(self):
+        Organization.objects.create(name="Test ASBL", address="Bxl")
+
+    @override_settings(OPENASBL_UPDATE_CHECK_ENABLED=True)
+    @patch("core.context_processors.check_for_update")
+    def test_update_banner_shows_when_update_available(self, mock_check):
+        mock_check.return_value = {
+            "update_available": True,
+            "current_version": "2.5.0",
+            "latest_version": "2.6.0",
+            "update_url": "https://github.com/yetouse/openasbl/releases/latest",
+            "update_command": "./install-desktop.sh",
+        }
+        response = self.client.get("/accounts/login/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "OpenASBL est disponible")
+        self.assertContains(response, "v2.6.0")
+        self.assertContains(response, "./install-desktop.sh")
+
+    @override_settings(OPENASBL_UPDATE_CHECK_ENABLED=False)
+    @patch("core.context_processors.check_for_update")
+    def test_update_banner_hidden_when_check_disabled(self, mock_check):
+        response = self.client.get("/accounts/login/")
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Une nouvelle version d")
+        mock_check.assert_not_called()

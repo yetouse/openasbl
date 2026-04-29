@@ -125,3 +125,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
+
+OPENASBL_UPDATE_CHECK_URL = os.environ.get(
+    "OPENASBL_UPDATE_CHECK_URL",
+    "https://raw.githubusercontent.com/yetouse/openasbl/main/VERSION",
+)
+OPENASBL_UPDATE_CHECK_TIMEOUT = float(os.environ.get("OPENASBL_UPDATE_CHECK_TIMEOUT", "1.5"))
+_env_update_enabled = os.environ.get("OPENASBL_UPDATE_CHECK_ENABLED", "")
+OPENASBL_UPDATE_CHECK_ENABLED = (
+    _env_update_enabled.lower() in ("true", "1") if _env_update_enabled else OPENASBL_IS_DESKTOP
+)
