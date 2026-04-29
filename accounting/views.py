@@ -6,7 +6,7 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Max, Sum
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -15,6 +15,50 @@ from accounts.models import PermissionLevel
 from accounting.forms import AssetSnapshotForm, CategoryForm, EntryForm, FiscalYearForm
 from accounting.models import AssetSnapshot, Budget, Category, CategoryType, Entry, FiscalYear, FiscalYearStatus
 from accounting.ocr import extract_from_image
+
+
+_CATEGORY_KEYWORDS = {
+    "cotisation": CategoryType.INCOME,
+    "cotisations": CategoryType.INCOME,
+    "adhésion": CategoryType.INCOME,
+    "adhésions": CategoryType.INCOME,
+    "don": CategoryType.INCOME,
+    "dons": CategoryType.INCOME,
+    "subside": CategoryType.INCOME,
+    "subsides": CategoryType.INCOME,
+    "subvention": CategoryType.INCOME,
+    "subventions": CategoryType.INCOME,
+    "recette": CategoryType.INCOME,
+    "vente": CategoryType.INCOME,
+    "facture": CategoryType.EXPENSE,
+    "assurance": CategoryType.EXPENSE,
+    "loyer": CategoryType.EXPENSE,
+    "essence": CategoryType.EXPENSE,
+    "carburant": CategoryType.EXPENSE,
+    "fournitures": CategoryType.EXPENSE,
+    "achat": CategoryType.EXPENSE,
+    "achats": CategoryType.EXPENSE,
+    "frais": CategoryType.EXPENSE,
+    "électricité": CategoryType.EXPENSE,
+    "eau": CategoryType.EXPENSE,
+    "internet": CategoryType.EXPENSE,
+    "téléphone": CategoryType.EXPENSE,
+    "remboursement": CategoryType.EXPENSE,
+}
+
+
+def _suggest_category(description, org):
+    """Return a Category pk based on description keywords, or None."""
+    if not description:
+        return None
+    words = description.lower().split()
+    for word in words:
+        cat_type = _CATEGORY_KEYWORDS.get(word)
+        if cat_type:
+            cat = Category.objects.filter(organization=org, category_type=cat_type).first()
+            if cat:
+                return cat.pk
+    return None
 
 
 def _monthly_data(fiscal_year):
@@ -229,8 +273,16 @@ def entry_list(request):
 @require_permission(PermissionLevel.GESTION)
 def entry_create(request):
     org = request.user.profile.organization
+    suggested_category = None
+
     if request.method == "POST":
-        form = EntryForm(request.POST, request.FILES)
+        post_data = request.POST.copy()
+        if not post_data.get("category") and post_data.get("description"):
+            suggested_pk = _suggest_category(post_data["description"], org)
+            if suggested_pk:
+                post_data["category"] = suggested_pk
+                suggested_category = Category.objects.filter(pk=suggested_pk).first()
+        form = EntryForm(post_data, request.FILES)
         if form.is_valid():
             entry = form.save(commit=False)
             entry.created_by = request.user
@@ -241,15 +293,67 @@ def entry_create(request):
                 return redirect("accounting:entry_create")
             return redirect("accounting:entry_list")
     else:
-        import datetime
         open_fy = FiscalYear.objects.filter(organization=org, status="open").first()
+        entry_type = request.GET.get("type")
+        description = request.GET.get("description", "")
+
+        initial_category = None
+        if entry_type in (CategoryType.INCOME, CategoryType.EXPENSE):
+            cat = Category.objects.filter(organization=org, category_type=entry_type).first()
+            if cat:
+                initial_category = cat.pk
+        elif description:
+            suggested_pk = _suggest_category(description, org)
+            if suggested_pk:
+                initial_category = suggested_pk
+                suggested_category = Category.objects.filter(pk=suggested_pk).first()
+
+        if initial_category is None:
+            last_entry = Entry.objects.filter(
+                created_by=request.user,
+                fiscal_year__organization=org,
+            ).order_by("-created_at").first()
+            if last_entry:
+                initial_category = last_entry.category_id
+
         form = EntryForm(initial={
             "date": datetime.date.today(),
             "fiscal_year": open_fy.pk if open_fy else None,
+            "category": initial_category,
         })
+
     form.fields["fiscal_year"].queryset = FiscalYear.objects.filter(organization=org, status="open")
-    form.fields["category"].queryset = org.categories.all()
-    return render(request, "accounting/entry_create_form.html", {"form": form, "title": "Nouvelle écriture", "save_and_new": True})
+    category_qs = org.categories.all()
+    if request.method == "GET":
+        type_filter = request.GET.get("type")
+        if type_filter in (CategoryType.INCOME, CategoryType.EXPENSE):
+            category_qs = category_qs.filter(category_type=type_filter)
+    form.fields["category"].queryset = category_qs
+
+    entry_mode = None
+    if request.method == "GET":
+        raw_type = request.GET.get("type")
+        if raw_type in (CategoryType.INCOME, CategoryType.EXPENSE):
+            entry_mode = raw_type
+
+    recent_cat_rows = (
+        Entry.objects.filter(fiscal_year__organization=org)
+        .values("category_id")
+        .annotate(last_used=Max("created_at"))
+        .order_by("-last_used")[:3]
+    )
+    ids = [row["category_id"] for row in recent_cat_rows]
+    cats_by_id = {c.pk: c for c in Category.objects.filter(pk__in=ids)}
+    recent_categories = [cats_by_id[pk] for pk in ids if pk in cats_by_id]
+
+    return render(request, "accounting/entry_create_form.html", {
+        "form": form,
+        "title": "Nouvelle écriture",
+        "save_and_new": True,
+        "suggested_category": suggested_category,
+        "entry_mode": entry_mode,
+        "recent_categories": recent_categories,
+    })
 
 @login_required
 @require_permission(PermissionLevel.GESTION)
@@ -278,6 +382,29 @@ def entry_delete(request, pk):
         entry.delete()
         messages.success(request, "Ecriture supprimee.")
     return redirect("accounting:entry_list")
+
+
+@login_required
+@require_permission(PermissionLevel.GESTION)
+def entry_duplicate(request, pk):
+    org = request.user.profile.organization
+    source = get_object_or_404(Entry, pk=pk, fiscal_year__organization=org)
+    open_fy = FiscalYear.objects.filter(organization=org, status="open").first()
+    form = EntryForm(initial={
+        "fiscal_year": open_fy.pk if open_fy else source.fiscal_year.pk,
+        "category": source.category.pk,
+        "amount": source.amount,
+        "description": source.description,
+        "date": datetime.date.today(),
+    })
+    form.fields["fiscal_year"].queryset = FiscalYear.objects.filter(organization=org, status="open")
+    form.fields["category"].queryset = org.categories.all()
+    return render(request, "accounting/entry_create_form.html", {
+        "form": form,
+        "title": f"Dupliquer — {source.description}",
+        "save_and_new": False,
+    })
+
 
 @login_required
 def fiscal_year_list(request):
