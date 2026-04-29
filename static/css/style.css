@@ -99,6 +99,32 @@ select {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
 }
 
+@media (min-width: 992px) {
+    #navbarMain {
+        min-width: 0;
+    }
+
+    .navbar-nav {
+        flex-wrap: wrap;
+        row-gap: 0.1rem;
+    }
+
+    .navbar-nav .nav-item {
+        flex: 0 0 auto;
+    }
+
+    .navbar .nav-link {
+        font-size: 0.86rem;
+        padding-left: 0.32rem;
+        padding-right: 0.32rem;
+        white-space: nowrap;
+    }
+
+    .navbar-collapse > .d-flex {
+        flex-shrink: 0;
+    }
+}
+
 @media (max-width: 991.98px) {
     .navbar-logo {
         height: 80px;
@@ -106,5 +132,113 @@ select {
     .navbar-brand {
         margin-top: -15px;
         margin-bottom: -15px;
+    }
+}
+
+/* ── Treasurer dashboard ── */
+
+.dashboard-hero {
+    background: linear-gradient(135deg, rgba(30, 58, 95, 0.08), rgba(30, 58, 95, 0.01));
+}
+
+.stat-card {
+    border: 1px solid rgba(30, 58, 95, 0.10);
+    border-left: 0.35rem solid #1e3a5f;
+    border-radius: 1rem;
+    background: #fff;
+    padding: 1rem;
+    box-shadow: 0 0.35rem 1.2rem rgba(30, 58, 95, 0.07);
+}
+
+.stat-card--income { border-left-color: var(--bs-success); }
+.stat-card--expense { border-left-color: var(--bs-danger); }
+.stat-card--balance { border-left-color: #1e3a5f; }
+.stat-card--assets { border-left-color: #6f42c1; }
+
+.stat-card__label {
+    color: var(--bs-secondary-color);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+}
+
+.stat-card__value {
+    color: #1f2937;
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 0.35rem;
+}
+
+.stat-card__hint {
+    color: var(--bs-secondary-color);
+    font-size: 0.86rem;
+    margin-bottom: 0;
+}
+
+.dashboard-alert {
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--bs-border-color);
+    border-left: 0.3rem solid var(--bs-primary);
+    border-radius: 0.85rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+}
+
+.dashboard-alert--danger { border-left-color: var(--bs-danger); background: rgba(var(--bs-danger-rgb), 0.04); }
+.dashboard-alert--warning { border-left-color: var(--bs-warning); background: rgba(var(--bs-warning-rgb), 0.08); }
+.dashboard-alert--info { border-left-color: var(--bs-info); background: rgba(var(--bs-info-rgb), 0.06); }
+
+.quick-actions {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.quick-action {
+    border: 1px solid rgba(30, 58, 95, 0.14);
+    border-radius: 0.85rem;
+    color: inherit;
+    display: block;
+    padding: 0.85rem 1rem;
+    text-decoration: none;
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out, transform .15s ease-in-out;
+}
+
+.quick-action:hover {
+    border-color: #1e3a5f;
+    box-shadow: 0 0.4rem 1rem rgba(30, 58, 95, 0.10);
+    color: inherit;
+    transform: translateY(-1px);
+}
+
+.quick-action__title,
+.quick-action__hint {
+    display: block;
+}
+
+.quick-action__title {
+    color: #1e3a5f;
+    font-weight: 700;
+}
+
+.quick-action__hint {
+    color: var(--bs-secondary-color);
+    font-size: 0.88rem;
+}
+
+@media (max-width: 575.98px) {
+    .dashboard-alert {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .dashboard-alert .btn,
+    .dashboard-hero .btn {
+        width: 100%;
     }
 }
