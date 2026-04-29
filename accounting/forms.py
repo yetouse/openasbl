@@ -13,6 +13,13 @@ class EntryForm(forms.ModelForm):
             "category": forms.Select(attrs={"class": "form-select"}),
             "attachment": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
+        help_texts = {
+            "date": "Date de l'opération (doit être dans l'exercice sélectionné).",
+            "amount": "Montant en euros, minimum 0,01 €.",
+            "category": "Choisissez la catégorie correspondant à cette opération.",
+            "description": "Brève description de l'opération (ex : Cotisation Jean Dupont).",
+            "attachment": "Optionnel. Joignez un scan ou une photo du justificatif (PDF, JPG, PNG…).",
+        }
 
 class CategoryForm(forms.ModelForm):
     class Meta:

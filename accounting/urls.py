@@ -8,6 +8,7 @@ urlpatterns = [
     path("entries/create/", views.entry_create, name="entry_create"),
     path("entries/<int:pk>/edit/", views.entry_edit, name="entry_edit"),
     path("entries/<int:pk>/delete/", views.entry_delete, name="entry_delete"),
+    path("entries/<int:pk>/duplicate/", views.entry_duplicate, name="entry_duplicate"),
     path("fiscal-years/", views.fiscal_year_list, name="fiscal_year_list"),
     path("fiscal-years/create/", views.fiscal_year_create, name="fiscal_year_create"),
     path("fiscal-years/<int:pk>/close/", views.fiscal_year_close, name="fiscal_year_close"),

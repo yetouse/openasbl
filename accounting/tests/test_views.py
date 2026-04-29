@@ -1,5 +1,6 @@
 import tempfile
 from datetime import date
+from datetime import date as today_date
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -424,3 +425,229 @@ class EntryAttachmentIndicatorTest(TestCase):
         )
         response = self.client.get("/entries/")
         self.assertNotContains(response, "attachment")
+
+
+class EntryNewFeaturesTest(TestCase):
+    def setUp(self):
+        self.org = Organization.objects.create(name="Mon ASBL", address="Bruxelles")
+        self.user = User.objects.create_user(username="tresorier", password="test123")
+        UserProfile.objects.create(user=self.user, organization=self.org, permission_level=PermissionLevel.GESTION)
+        self.fy = FiscalYear.objects.create(
+            organization=self.org, start_date=date(2026, 1, 1), end_date=date(2026, 12, 31)
+        )
+        self.income_cat = Category.objects.create(
+            organization=self.org, name="Cotisations", category_type=CategoryType.INCOME
+        )
+        self.expense_cat = Category.objects.create(
+            organization=self.org, name="Fournitures", category_type=CategoryType.EXPENSE
+        )
+        self.client.login(username="tresorier", password="test123")
+
+    def test_entry_create_prefill_type_expense(self):
+        response = self.client.get("/entries/create/?type=expense")
+        self.assertEqual(response.status_code, 200)
+        form = response.context["form"]
+        self.assertEqual(form.initial.get("category"), self.expense_cat.pk)
+
+    def test_entry_create_prefill_type_income(self):
+        response = self.client.get("/entries/create/?type=income")
+        self.assertEqual(response.status_code, 200)
+        form = response.context["form"]
+        self.assertEqual(form.initial.get("category"), self.income_cat.pk)
+
+    def test_entry_duplicate_prefills_values_and_today_date(self):
+        entry = Entry.objects.create(
+            fiscal_year=self.fy,
+            category=self.income_cat,
+            date=date(2026, 1, 15),
+            amount=Decimal("75.00"),
+            description="Cotisation annuelle",
+            created_by=self.user,
+        )
+        response = self.client.get(f"/entries/{entry.pk}/duplicate/")
+        self.assertEqual(response.status_code, 200)
+        form = response.context["form"]
+        self.assertEqual(form.initial.get("category"), self.income_cat.pk)
+        self.assertEqual(form.initial.get("amount"), Decimal("75.00"))
+        self.assertEqual(form.initial.get("description"), "Cotisation annuelle")
+        self.assertEqual(form.initial.get("date"), today_date.today())
+        self.assertContains(response, "Dupliquer")
+
+    def test_entry_list_shows_quick_create_and_duplicate_buttons(self):
+        entry = Entry.objects.create(
+            fiscal_year=self.fy,
+            category=self.income_cat,
+            date=date(2026, 2, 1),
+            amount=Decimal("50.00"),
+            description="Test",
+            created_by=self.user,
+        )
+        response = self.client.get("/entries/")
+        self.assertContains(response, "Nouvelle dépense")
+        self.assertContains(response, "Nouvelle recette")
+        self.assertContains(response, "type=expense")
+        self.assertContains(response, "type=income")
+        self.assertContains(response, "Dupliquer")
+        self.assertContains(response, f"/entries/{entry.pk}/duplicate/")
+
+    def test_entry_create_suggests_category_from_description_when_missing(self):
+        response = self.client.post("/entries/create/", {
+            "fiscal_year": self.fy.pk,
+            "category": "",
+            "date": "2026-03-15",
+            "amount": "50.00",
+            "description": "cotisation membre 2026",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Entry.objects.count(), 1)
+        self.assertEqual(Entry.objects.first().category, self.income_cat)
+
+    def test_suggested_category_message_visible_on_get(self):
+        """GET with matching description shows suggested_category alert."""
+        response = self.client.get("/entries/create/?description=cotisation")
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(response.context.get("suggested_category"))
+        self.assertEqual(response.context["suggested_category"], self.income_cat)
+        self.assertContains(response, "Catégorie suggérée automatiquement")
+        self.assertContains(response, "Cotisations")
+
+    def test_no_suggestion_message_without_matching_description(self):
+        """GET without description does not show suggestion alert."""
+        response = self.client.get("/entries/create/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context.get("suggested_category"))
+        self.assertNotContains(response, "Catégorie suggérée automatiquement")
+
+    def test_category_filter_expense(self):
+        """type=expense restricts category queryset to expense categories only."""
+        response = self.client.get("/entries/create/?type=expense")
+        self.assertEqual(response.status_code, 200)
+        qs = response.context["form"].fields["category"].queryset
+        self.assertIn(self.expense_cat, qs)
+        self.assertNotIn(self.income_cat, qs)
+        self.assertTrue(all(c.category_type == CategoryType.EXPENSE for c in qs))
+
+    def test_category_filter_income(self):
+        """type=income restricts category queryset to income categories only."""
+        response = self.client.get("/entries/create/?type=income")
+        self.assertEqual(response.status_code, 200)
+        qs = response.context["form"].fields["category"].queryset
+        self.assertIn(self.income_cat, qs)
+        self.assertNotIn(self.expense_cat, qs)
+        self.assertTrue(all(c.category_type == CategoryType.INCOME for c in qs))
+
+    def test_category_filter_absent_shows_all(self):
+        """No type param → all categories visible in form."""
+        response = self.client.get("/entries/create/")
+        self.assertEqual(response.status_code, 200)
+        qs = response.context["form"].fields["category"].queryset
+        self.assertIn(self.income_cat, qs)
+        self.assertIn(self.expense_cat, qs)
+
+    def test_keyboard_shortcut_present_in_create_form(self):
+        """Ctrl+Shift+Enter shortcut attribute and script present in create form."""
+        response = self.client.get("/entries/create/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-shortcut="ctrl+shift+enter"')
+        self.assertContains(response, "shiftKey")
+
+    def test_entry_mode_badge_expense(self):
+        response = self.client.get("/entries/create/?type=expense")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context.get("entry_mode"), "expense")
+        self.assertContains(response, "Mode Dépense")
+        self.assertNotContains(response, "Mode Recette")
+
+    def test_entry_mode_badge_income(self):
+        response = self.client.get("/entries/create/?type=income")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context.get("entry_mode"), "income")
+        self.assertContains(response, "Mode Recette")
+        self.assertNotContains(response, "Mode Dépense")
+
+    def test_entry_mode_badge_absent_without_type(self):
+        response = self.client.get("/entries/create/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context.get("entry_mode"))
+        self.assertNotContains(response, "Mode Dépense")
+        self.assertNotContains(response, "Mode Recette")
+
+    def test_category_search_field_present(self):
+        response = self.client.get("/entries/create/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="category-search"')
+
+    def test_recent_categories_shortcuts_when_history_exists(self):
+        Entry.objects.create(
+            fiscal_year=self.fy,
+            category=self.income_cat,
+            date=date(2026, 3, 1),
+            amount=Decimal("30.00"),
+            description="Cotisation test",
+            created_by=self.user,
+        )
+        response = self.client.get("/entries/create/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "recent-cat-btn")
+        self.assertContains(response, self.income_cat.name)
+
+    def test_form_error_alert_on_invalid_submit(self):
+        response = self.client.post("/entries/create/", {
+            "fiscal_year": self.fy.pk,
+            "category": self.income_cat.pk,
+            "date": "not-a-date",
+            "amount": "50.00",
+            "description": "Test",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "contient des erreurs")
+
+    def test_attachment_preview_hook_present(self):
+        response = self.client.get("/entries/create/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="attachment-filename"')
+
+    def test_entry_create_preselects_last_used_category(self):
+        """GET without type or description preselects the last category used by the user."""
+        Entry.objects.create(
+            fiscal_year=self.fy,
+            category=self.expense_cat,
+            date=date(2026, 3, 1),
+            amount=Decimal("20.00"),
+            description="Achat stylos",
+            created_by=self.user,
+        )
+        response = self.client.get("/entries/create/")
+        self.assertEqual(response.status_code, 200)
+        form = response.context["form"]
+        self.assertEqual(form.initial.get("category"), self.expense_cat.pk)
+
+    def test_entry_create_last_category_does_not_override_type_param(self):
+        """type= param takes priority over last used category."""
+        Entry.objects.create(
+            fiscal_year=self.fy,
+            category=self.expense_cat,
+            date=date(2026, 3, 1),
+            amount=Decimal("20.00"),
+            description="Achat stylos",
+            created_by=self.user,
+        )
+        response = self.client.get("/entries/create/?type=income")
+        self.assertEqual(response.status_code, 200)
+        form = response.context["form"]
+        self.assertEqual(form.initial.get("category"), self.income_cat.pk)
+
+    def test_entry_create_last_category_does_not_override_description_suggestion(self):
+        """Description suggestion takes priority over last used category."""
+        Entry.objects.create(
+            fiscal_year=self.fy,
+            category=self.expense_cat,
+            date=date(2026, 3, 1),
+            amount=Decimal("20.00"),
+            description="Achat stylos",
+            created_by=self.user,
+        )
+        response = self.client.get("/entries/create/?description=cotisation")
+        self.assertEqual(response.status_code, 200)
+        form = response.context["form"]
+        self.assertEqual(form.initial.get("category"), self.income_cat.pk)

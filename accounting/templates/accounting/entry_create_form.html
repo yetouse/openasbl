@@ -12,14 +12,32 @@
                     <h1 class="card-title h4 mb-0">{{ title }}</h1>
                     {% help_button "entry_create" %}
                 </div>
+                {% if entry_mode == 'expense' %}
+                <div class="alert alert-danger d-flex align-items-center gap-2 py-2 mb-3" role="alert">
+                    <i class="bi bi-arrow-down-circle-fill"></i>
+                    <strong>Mode Dépense</strong>
+                </div>
+                {% elif entry_mode == 'income' %}
+                <div class="alert alert-success d-flex align-items-center gap-2 py-2 mb-3" role="alert">
+                    <i class="bi bi-arrow-up-circle-fill"></i>
+                    <strong>Mode Recette</strong>
+                </div>
+                {% endif %}
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        <strong>Le formulaire contient des erreurs.</strong> Veuillez corriger les champs indiqués ci-dessous.
+                    </div>
+                    {% endif %}
 
                     {% if form.fiscal_year %}
                     <div class="mb-3">
                         <label for="{{ form.fiscal_year.id_for_label }}" class="form-label">{{ form.fiscal_year.label }}</label>
                         {{ form.fiscal_year }}
                         {% if form.fiscal_year.errors %}<div class="text-danger small mt-1">{{ form.fiscal_year.errors.0 }}</div>{% endif %}
+                        {% if form.fiscal_year.help_text %}<div class="form-text">{{ form.fiscal_year.help_text }}</div>{% endif %}
                     </div>
                     {% endif %}
 
@@ -28,6 +46,7 @@
                             <label for="{{ form.date.id_for_label }}" class="form-label">{{ form.date.label }}</label>
                             {{ form.date }}
                             {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>{% endif %}
+                            {% if form.date.help_text %}<div class="form-text">{{ form.date.help_text }}</div>{% endif %}
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.amount.id_for_label }}" class="form-label">{{ form.amount.label }}</label>
@@ -36,38 +55,97 @@
                                 <span class="input-group-text">&euro;</span>
                             </div>
                             {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>{% endif %}
+                            {% if form.amount.help_text %}<div class="form-text">{{ form.amount.help_text }}</div>{% endif %}
                         </div>
                     </div>
 
+                    {% if suggested_category %}
+                    <div class="alert alert-info d-flex align-items-center gap-2 mb-3" role="alert">
+                        <i class="bi bi-lightbulb"></i>
+                        Catégorie suggérée automatiquement&#160;: <strong>{{ suggested_category.name }}</strong>
+                    </div>
+                    {% endif %}
+
+                    {% if recent_categories %}
+                    <div class="mb-2 d-flex align-items-center gap-1 flex-wrap">
+                        <small class="text-muted me-1">Récents&#160;:</small>
+                        {% for cat in recent_categories %}
+                        <button type="button" class="btn btn-sm btn-outline-secondary recent-cat-btn" data-cat-id="{{ cat.pk }}">{{ cat.name }}</button>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                     <div class="mb-3">
                         <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
+                        <input type="text" id="category-search" class="form-control form-control-sm mb-1" placeholder="Rechercher une catégorie…" autocomplete="off">
                         {{ form.category }}
                         {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>{% endif %}
+                        {% if form.category.help_text %}<div class="form-text">{{ form.category.help_text }}</div>{% endif %}
                     </div>
 
                     <div class="mb-3">
                         <label for="{{ form.description.id_for_label }}" class="form-label">{{ form.description.label }}</label>
                         {{ form.description }}
                         {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+                        {% if form.description.help_text %}<div class="form-text">{{ form.description.help_text }}</div>{% endif %}
                     </div>
 
                     {% if form.attachment %}
-                    <div class="mb-3">
-                        <label for="{{ form.attachment.id_for_label }}" class="form-label">{{ form.attachment.label }}</label>
+                    <div class="mb-3 p-3 border rounded bg-light">
+                        <label for="{{ form.attachment.id_for_label }}" class="form-label fw-semibold">
+                            {{ form.attachment.label }}
+                        </label>
                         {{ form.attachment }}
                         {% if form.attachment.errors %}<div class="text-danger small mt-1">{{ form.attachment.errors.0 }}</div>{% endif %}
-                        <div class="form-text">Optionnel. Joignez un scan ou une photo du justificatif.</div>
+                        <div class="form-text">{% if form.attachment.help_text %}{{ form.attachment.help_text }}{% else %}Optionnel. Joignez un scan ou une photo du justificatif.{% endif %}</div>
+                        <div id="attachment-filename" class="form-text fst-italic">Aucun fichier sélectionné.</div>
                     </div>
                     {% endif %}
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-success">Enregistrer</button>
                         {% if save_and_new %}
-                        <button type="submit" name="save_and_new" value="1" class="btn btn-outline-success">Enregistrer et nouveau</button>
+                        <button type="submit" name="save_and_new" value="1" class="btn btn-outline-success" id="btn-save-and-new" data-shortcut="ctrl+shift+enter">Enregistrer et nouveau</button>
                         {% endif %}
                         <a href="{% url 'accounting:entry_list' %}" class="btn btn-secondary">Annuler</a>
                     </div>
                 </form>
+                {% if save_and_new %}
+                <script>
+                document.addEventListener('keydown', function(e) {
+                    if (e.ctrlKey && e.shiftKey && e.key === 'Enter') {
+                        var btn = document.getElementById('btn-save-and-new');
+                        if (btn) { e.preventDefault(); btn.click(); }
+                    }
+                });
+                </script>
+                {% endif %}
+                <script>
+                (function() {
+                    var searchInput = document.getElementById('category-search');
+                    var categorySelect = document.getElementById('{{ form.category.id_for_label }}');
+                    if (searchInput && categorySelect) {
+                        searchInput.addEventListener('input', function() {
+                            var q = this.value.toLowerCase();
+                            Array.from(categorySelect.options).forEach(function(opt) {
+                                opt.hidden = q.length > 0 && !opt.text.toLowerCase().includes(q);
+                            });
+                        });
+                    }
+                    document.querySelectorAll('.recent-cat-btn').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            if (categorySelect) categorySelect.value = this.dataset.catId;
+                        });
+                    });
+                    var attachInput = document.getElementById('{{ form.attachment.id_for_label }}');
+                    var attachLabel = document.getElementById('attachment-filename');
+                    if (attachInput && attachLabel) {
+                        attachInput.addEventListener('change', function() {
+                            attachLabel.textContent = this.files.length ? this.files[0].name : 'Aucun fichier sélectionné.';
+                        });
+                    }
+                })();
+                </script>
             </div>
         </div>
     </div>
