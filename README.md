@@ -62,6 +62,27 @@ Développée initialement pour le [Royal Cercle de Voile de Dave](https://www.ro
 | Fichiers statiques | WhiteNoise |
 | Déploiement | Gunicorn + Nginx |
 
+## Installation en 1 commande
+
+### Mode desktop (usage local)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-desktop.sh | bash
+```
+
+### Mode serveur (production)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-server.sh | sudo bash
+```
+
+### Option dry-run (aperçu sans exécution)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-desktop.sh | bash -s -- --dry-run
+curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-server.sh | sudo bash -s -- --dry-run
+```
+
 ## Installation
 
 ### Prérequis
@@ -102,6 +123,17 @@ python manage.py test                    # tous les tests (198)
 python manage.py test accounting         # tests du module comptabilité
 python manage.py test accounting.tests.test_models  # un module spécifique
 ```
+
+## Mode desktop (préparation Electron)
+
+Le mode serveur web actuel reste inchangé.
+
+```bash
+chmod +x scripts/run_desktop.sh
+./scripts/run_desktop.sh
+```
+
+Ce script lance Django en local uniquement (`127.0.0.1`) avec un stockage utilisateur local (`~/.openasbl` par défaut).
 
 ## Déploiement
 

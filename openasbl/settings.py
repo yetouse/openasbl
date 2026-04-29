@@ -3,6 +3,10 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# --- Mode dual: "server" (défaut) ou "desktop" (usage local via Electron) ---
+OPENASBL_RUNTIME_MODE = os.environ.get("OPENASBL_RUNTIME_MODE", "server")
+OPENASBL_IS_DESKTOP = OPENASBL_RUNTIME_MODE == "desktop"
+
 SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY",
     "django-insecure-dev-only-change-in-production",
@@ -10,7 +14,16 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in ("true", "1")
 
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+if OPENASBL_IS_DESKTOP:
+    # Mode desktop: écoute locale uniquement
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+    # Répertoire de données utilisateur (base de tout en mode desktop)
+    OPENASBL_DATA_DIR = Path(
+        os.environ.get("OPENASBL_DATA_DIR", Path.home() / ".openasbl")
+    )
+    OPENASBL_DATA_DIR.mkdir(parents=True, exist_ok=True)
+else:
+    ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -63,12 +76,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "openasbl.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if OPENASBL_IS_DESKTOP:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": OPENASBL_DATA_DIR / "db.sqlite3",
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -86,7 +107,7 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = (OPENASBL_DATA_DIR / "staticfiles") if OPENASBL_IS_DESKTOP else (BASE_DIR / "staticfiles")
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -97,7 +118,7 @@ STORAGES = {
 }
 
 MEDIA_URL = "media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = (OPENASBL_DATA_DIR / "media") if OPENASBL_IS_DESKTOP else (BASE_DIR / "media")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
