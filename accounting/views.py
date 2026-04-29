@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from accounts.decorators import require_permission
 from accounts.models import PermissionLevel
 from accounting.forms import AssetSnapshotForm, CategoryForm, EntryForm, FiscalYearForm
@@ -34,10 +35,13 @@ def _monthly_data(fiscal_year):
 @login_required
 def dashboard(request):
     org = request.user.profile.organization
+    can_edit = request.user.profile.can_edit
     fiscal_years = FiscalYear.objects.filter(organization=org)
     current_fy = fiscal_years.filter(status="open").first()
     summary = {}
     budget_summary = None
+    dashboard_alerts = []
+    latest_asset_snapshot = None
     recent_entries = []
     chart_data = None
     if current_fy:
@@ -45,7 +49,7 @@ def dashboard(request):
         expenses = Entry.objects.filter(fiscal_year=current_fy, category__category_type=CategoryType.EXPENSE).aggregate(total=Sum("amount"))["total"] or 0
         summary = {"income": income, "expenses": expenses, "balance": income - expenses, "entry_count": Entry.objects.filter(fiscal_year=current_fy).count()}
 
-        # Budget progress
+        # Budget progress and treasurer alerts
         budgets = Budget.objects.filter(fiscal_year=current_fy).select_related("category")
         if budgets.exists():
             budget_income = sum(b.planned_amount for b in budgets if b.category.category_type == CategoryType.INCOME)
@@ -56,6 +60,44 @@ def dashboard(request):
                 "budget_income": budget_income, "actual_income": income, "income_pct": income_pct,
                 "budget_expense": budget_expense, "actual_expense": expenses, "expense_pct": expense_pct,
             }
+            if budget_expense and expense_pct > 100:
+                dashboard_alerts.append({
+                    "level": "danger",
+                    "title": "Dépenses au-dessus du budget",
+                    "message": f"Les dépenses atteignent {expense_pct}% du budget prévu.",
+                    "href": reverse("accounting:budget_tracking", args=[current_fy.pk]),
+                    "requires_edit": False,
+                    "action": "Voir le détail",
+                })
+            elif budget_expense and expense_pct >= 75:
+                dashboard_alerts.append({
+                    "level": "warning",
+                    "title": "Budget dépenses à surveiller",
+                    "message": f"Les dépenses atteignent {expense_pct}% du budget prévu.",
+                    "href": reverse("accounting:budget_tracking", args=[current_fy.pk]),
+                    "requires_edit": False,
+                    "action": "Analyser",
+                })
+        else:
+            dashboard_alerts.append({
+                "level": "warning",
+                "title": "Budget à préparer",
+                "message": "Aucun budget n'est encore encodé pour l'exercice ouvert.",
+                "href": reverse("accounting:budget_create", args=[current_fy.pk]),
+                "requires_edit": True,
+                "action": "Encoder le budget",
+            })
+
+        latest_asset_snapshot = AssetSnapshot.objects.filter(fiscal_year=current_fy).order_by("-date").first()
+        if not latest_asset_snapshot:
+            dashboard_alerts.append({
+                "level": "info",
+                "title": "Patrimoine non renseigné",
+                "message": "Ajoutez un relevé caisse/banque pour suivre le patrimoine net.",
+                "href": reverse("accounting:asset_snapshot_create", args=[current_fy.pk]),
+                "requires_edit": True,
+                "action": "Ajouter le patrimoine",
+            })
 
         # Recent entries
         recent_entries = Entry.objects.filter(fiscal_year=current_fy).select_related("category").order_by("-date", "-created_at")[:5]
@@ -146,7 +188,9 @@ def dashboard(request):
 
     return render(request, "accounting/dashboard.html", {
         "fiscal_years": fiscal_years, "current_fy": current_fy, "summary": summary,
-        "budget_summary": budget_summary, "recent_entries": recent_entries,
+        "can_edit": can_edit,
+        "budget_summary": budget_summary, "dashboard_alerts": dashboard_alerts,
+        "latest_asset_snapshot": latest_asset_snapshot, "recent_entries": recent_entries,
         "chart_data": chart_data,
     })
 

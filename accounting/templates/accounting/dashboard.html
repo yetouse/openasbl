@@ -10,40 +10,112 @@
 </div>
 
 {% if current_fy %}
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <h2 class="card-title h5 mb-3">Exercice en cours : {{ current_fy }}</h2>
-        <div class="row g-3">
-            <div class="col-sm-6 col-lg-3">
-                <div class="card bg-light">
-                    <div class="card-body text-center">
-                        <p class="text-muted mb-1 small">Recettes</p>
-                        <p class="text-success fw-bold fs-5 mb-0">{{ summary.income|money }} &euro;</p>
-                    </div>
-                </div>
+<div class="dashboard-hero card shadow-sm mb-4 border-0">
+    <div class="card-body p-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+            <div>
+                <p class="text-uppercase text-muted small fw-semibold mb-1">Exercice ouvert</p>
+                <h2 class="h4 mb-1">{{ current_fy }}</h2>
+                <p class="text-muted mb-0">Vue rapide pour décider quoi encoder, vérifier ou présenter au CA.</p>
             </div>
-            <div class="col-sm-6 col-lg-3">
-                <div class="card bg-light">
-                    <div class="card-body text-center">
-                        <p class="text-muted mb-1 small">Dépenses</p>
-                        <p class="text-danger fw-bold fs-5 mb-0">{{ summary.expenses|money }} &euro;</p>
-                    </div>
-                </div>
+            <div class="d-flex flex-wrap gap-2 align-items-start">
+                {% if can_edit %}
+                <a href="{% url 'accounting:entry_create' %}" class="btn btn-primary">Nouvelle écriture</a>
+                <a href="{% url 'accounting:scan_ticket' %}" class="btn btn-outline-primary">Scanner un ticket</a>
+                {% endif %}
+                <a href="{% url 'reports:report_select' %}" class="btn btn-outline-secondary">Rapports</a>
             </div>
-            <div class="col-sm-6 col-lg-3">
-                <div class="card bg-light">
-                    <div class="card-body text-center">
-                        <p class="text-muted mb-1 small">Solde</p>
-                        <p class="{% if summary.balance >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold fs-5 mb-0">{{ summary.balance|money }} &euro;</p>
-                    </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card stat-card--income h-100">
+            <p class="stat-card__label">Recettes</p>
+            <p class="stat-card__value text-success">{{ summary.income|money }} &euro;</p>
+            <p class="stat-card__hint">Montant encaissé sur l'exercice</p>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card stat-card--expense h-100">
+            <p class="stat-card__label">Dépenses</p>
+            <p class="stat-card__value text-danger">{{ summary.expenses|money }} &euro;</p>
+            <p class="stat-card__hint">Montant dépensé sur l'exercice</p>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card stat-card--balance h-100">
+            <p class="stat-card__label">Solde de l'exercice</p>
+            <p class="stat-card__value {% if summary.balance >= 0 %}text-success{% else %}text-danger{% endif %}">{{ summary.balance|money }} &euro;</p>
+            <p class="stat-card__hint">Recettes moins dépenses</p>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card stat-card--assets h-100">
+            <p class="stat-card__label">{% if latest_asset_snapshot %}Patrimoine net{% else %}Écritures{% endif %}</p>
+            {% if latest_asset_snapshot %}
+            <p class="stat-card__value">{{ latest_asset_snapshot.net_worth|money }} &euro;</p>
+            <p class="stat-card__hint">Dernier relevé au {{ latest_asset_snapshot.date|date:"d/m/Y" }}</p>
+            {% else %}
+            <p class="stat-card__value">{{ summary.entry_count }}</p>
+            <p class="stat-card__hint">Opérations encodées</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="card-title h5 mb-0">À surveiller</h2>
+                    {% if budget_summary %}<a href="{% url 'accounting:budget_tracking' current_fy.pk %}" class="btn btn-outline-primary btn-sm">Suivi budget</a>{% endif %}
                 </div>
-            </div>
-            <div class="col-sm-6 col-lg-3">
-                <div class="card bg-light">
-                    <div class="card-body text-center">
-                        <p class="text-muted mb-1 small">Écritures</p>
-                        <p class="fw-bold fs-5 mb-0">{{ summary.entry_count }}</p>
+                {% if dashboard_alerts %}
+                <div class="d-grid gap-2">
+                    {% for alert in dashboard_alerts %}
+                    <div class="dashboard-alert dashboard-alert--{{ alert.level }}">
+                        <div>
+                            <strong>{{ alert.title }}</strong>
+                            <p class="mb-0 small">{{ alert.message }}</p>
+                        </div>
+                        {% if not alert.requires_edit or can_edit %}
+                        <a href="{{ alert.href }}" class="btn btn-sm btn-outline-primary">{{ alert.action }}</a>
+                        {% endif %}
                     </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">Tout est en ordre pour l'exercice ouvert.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="card-title h5 mb-3">Actions rapides</h2>
+                <div class="quick-actions">
+                    {% if can_edit %}
+                    <a class="quick-action" href="{% url 'accounting:entry_create' %}">
+                        <span class="quick-action__title">Ajouter une dépense</span>
+                        <span class="quick-action__hint">Ticket, facture ou achat</span>
+                    </a>
+                    <a class="quick-action" href="{% url 'accounting:entry_create' %}">
+                        <span class="quick-action__title">Encoder une recette</span>
+                        <span class="quick-action__hint">Cotisation, don ou subside</span>
+                    </a>
+                    <a class="quick-action" href="{% url 'accounting:scan_ticket' %}">
+                        <span class="quick-action__title">Scanner un ticket</span>
+                        <span class="quick-action__hint">OCR puis validation manuelle</span>
+                    </a>
+                    {% endif %}
+                    <a class="quick-action" href="{% url 'reports:report_select' %}">
+                        <span class="quick-action__title">Préparer un rapport</span>
+                        <span class="quick-action__hint">CA, budget ou comptes annuels</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -97,7 +169,7 @@
                 <tbody>
                     {% for entry in recent_entries %}
                     <tr>
-                        <td>{{ entry.date }}</td>
+                        <td>{{ entry.date|date:"d/m/Y" }}</td>
                         <td>{{ entry.description }}</td>
                         <td><span class="badge {% if entry.entry_type == 'income' %}bg-success{% else %}bg-danger{% endif %}">{{ entry.category.name }}</span></td>
                         <td class="text-end {% if entry.entry_type == 'income' %}text-success{% else %}text-danger{% endif %}">
@@ -139,12 +211,6 @@
     </div>
 </div>
 {% endif %}
-
-<div class="d-flex gap-2">
-    <a href="{% url 'accounting:entry_create' %}" class="btn btn-primary">Nouvelle écriture</a>
-    <a href="{% url 'accounting:entry_list' %}?fiscal_year={{ current_fy.pk }}" class="btn btn-outline-primary">Voir les écritures</a>
-    <a href="{% url 'reports:report_select' %}" class="btn btn-outline-secondary">Rapports</a>
-</div>
 {% else %}
 <div class="card shadow-sm">
     <div class="card-body">
