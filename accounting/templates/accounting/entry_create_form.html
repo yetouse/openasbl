@@ -13,22 +13,24 @@
                     {% help_button "entry_create" %}
                 </div>
                 {% if entry_mode == 'expense' %}
-                <div class="alert alert-danger d-flex align-items-center gap-2 py-2 mb-3" role="alert">
-                    <i class="bi bi-arrow-down-circle-fill"></i>
-                    <strong>Mode Dépense</strong>
+                <div class="mb-3">
+                    <span class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill border border-danger text-danger fw-semibold small">
+                        <i class="bi bi-arrow-down-circle-fill"></i> Mode Dépense
+                    </span>
                 </div>
                 {% elif entry_mode == 'income' %}
-                <div class="alert alert-success d-flex align-items-center gap-2 py-2 mb-3" role="alert">
-                    <i class="bi bi-arrow-up-circle-fill"></i>
-                    <strong>Mode Recette</strong>
+                <div class="mb-3">
+                    <span class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill border border-success text-success fw-semibold small">
+                        <i class="bi bi-arrow-up-circle-fill"></i> Mode Recette
+                    </span>
                 </div>
                 {% endif %}
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
 
                     {% if form.errors %}
-                    <div class="alert alert-danger" role="alert">
-                        <strong>Le formulaire contient des erreurs.</strong> Veuillez corriger les champs indiqués ci-dessous.
+                    <div class="alert alert-danger py-2 mb-3" role="alert">
+                        <strong>Ce formulaire contient des erreurs</strong> — veuillez corriger les champs indiqués.
                     </div>
                     {% endif %}
 
@@ -60,8 +62,8 @@
                     </div>
 
                     {% if suggested_category %}
-                    <div class="alert alert-info d-flex align-items-center gap-2 mb-3" role="alert">
-                        <i class="bi bi-lightbulb"></i>
+                    <div class="alert alert-info d-flex align-items-center gap-2 py-2 mb-3" role="alert">
+                        <i class="bi bi-lightbulb-fill"></i>
                         Catégorie suggérée automatiquement&#160;: <strong>{{ suggested_category.name }}</strong>
                     </div>
                     {% endif %}
