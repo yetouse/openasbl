@@ -14,6 +14,18 @@
     {% include "navbar.html" %}
     <main class="container py-4">
         {% include "partials/messages.html" %}
+        {% if update_available %}
+            <div class="alert alert-warning d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2" role="alert">
+                <div>
+                    <strong>Une nouvelle version d'OpenASBL est disponible (v{{ latest_version }}).</strong>
+                    <div class="small mt-1">Version actuelle : v{{ current_version }}</div>
+                    <div class="small mt-1">Mise à jour : <code>{{ update_command }}</code></div>
+                </div>
+                {% if update_url %}
+                    <a class="btn btn-sm btn-outline-dark" href="{{ update_url }}" target="_blank" rel="noopener">Voir la mise à jour</a>
+                {% endif %}
+            </div>
+        {% endif %}
         {% block content %}{% endblock %}
     </main>
     <footer class="text-center py-4 mt-4 border-top">
