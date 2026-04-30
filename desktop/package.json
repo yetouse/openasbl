@@ -1,0 +1,52 @@
+{
+  "name": "openasbl-desktop",
+  "version": "2.5.1",
+  "private": true,
+  "description": "OpenASBL desktop shell (Electron) - launches the local Django backend and renders it in a native window.",
+  "author": "OpenASBL",
+  "license": "MIT",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron --no-sandbox .",
+    "check": "node --check src/main.js && node --check src/preload.js",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "tree-kill": "^1.2.2"
+  },
+  "devDependencies": {
+    "electron": "^41.3.0",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "be.openasbl.desktop",
+    "productName": "OpenASBL",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Office"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.business"
+    }
+  }
+}
