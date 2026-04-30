@@ -39,16 +39,19 @@
                     <a class="nav-link {% if request.resolver_match.url_name == 'guide_asbl' %}active{% endif %}" href="{% url 'help:guide_asbl' %}">{% trans "Guide ASBL" %}</a>
                 </li>
                 {% if user.profile.can_manage_users %}
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'user_list' %}active{% endif %}" href="{% url 'accounts:user_list' %}">{% trans "Utilisateurs" %}</a>
+                {% with admin_active=request.resolver_match.url_name %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if admin_active == 'user_list' or admin_active == 'organization_settings' %}active{% endif %}" href="#" id="navAdminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">{% trans "Admin" %}</a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navAdminMenu">
+                        <li><a class="dropdown-item {% if admin_active == 'user_list' %}active{% endif %}" href="{% url 'accounts:user_list' %}">{% trans "Utilisateurs" %}</a></li>
+                        <li><a class="dropdown-item {% if admin_active == 'organization_settings' %}active{% endif %}" href="{% url 'core:organization_settings' %}">{% trans "Paramètres" %}</a></li>
+                    </ul>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'organization_settings' %}active{% endif %}" href="{% url 'core:organization_settings' %}">{% trans "Paramètres" %}</a>
-                </li>
+                {% endwith %}
                 {% endif %}
             </ul>
             <div class="d-flex align-items-center">
-                <span class="text-light me-3">{{ user.get_full_name|default:user.username }}</span>
+                <span class="text-light user-name me-3 d-none d-xl-inline">{{ user.get_full_name|default:user.username }}</span>
                 <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-outline-light btn-sm">{% trans "Déconnexion" %}</button>
