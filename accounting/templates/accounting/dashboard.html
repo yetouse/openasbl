@@ -10,12 +10,12 @@
 </div>
 
 {% if current_fy %}
-<div class="dashboard-hero card shadow-sm mb-4 border-0">
+<div class="dashboard-hero mb-4">
     <div class="card-body p-4">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
             <div>
-                <p class="text-uppercase text-muted small fw-semibold mb-1">Exercice ouvert</p>
-                <h2 class="h4 mb-1">{{ current_fy }}</h2>
+                <p class="eyebrow mb-2">Exercice ouvert</p>
+                <h2 class="h3 mb-1">{{ current_fy }}</h2>
                 <p class="text-muted mb-0">Vue rapide pour décider quoi encoder, vérifier ou présenter au CA.</p>
             </div>
             <div class="d-flex flex-wrap gap-2 align-items-start">
@@ -132,21 +132,21 @@
         </div>
         <div class="row g-3 mb-3">
             <div class="col-md-6">
-                <div class="d-flex justify-content-between small mb-1">
-                    <span class="text-muted">Recettes</span>
-                    <span>{{ budget_summary.actual_income|money }} / {{ budget_summary.budget_income|money }} &euro;</span>
+                <div class="budget-meter__head">
+                    <span class="budget-meter__label">Recettes</span>
+                    <span class="budget-meter__value">{{ budget_summary.actual_income|money }} / {{ budget_summary.budget_income|money }} &euro;</span>
                 </div>
-                <div class="progress" style="height: 10px;">
+                <div class="progress" style="height: 8px;">
                     <div class="progress-bar bg-success" role="progressbar" style="width: {% if budget_summary.income_pct > 100 %}100{% else %}{{ budget_summary.income_pct }}{% endif %}%;" aria-valuenow="{{ budget_summary.income_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
                 <div class="text-end small text-muted mt-1">{{ budget_summary.income_pct }}%</div>
             </div>
             <div class="col-md-6">
-                <div class="d-flex justify-content-between small mb-1">
-                    <span class="text-muted">Dépenses</span>
-                    <span>{{ budget_summary.actual_expense|money }} / {{ budget_summary.budget_expense|money }} &euro;</span>
+                <div class="budget-meter__head">
+                    <span class="budget-meter__label">Dépenses</span>
+                    <span class="budget-meter__value">{{ budget_summary.actual_expense|money }} / {{ budget_summary.budget_expense|money }} &euro;</span>
                 </div>
-                <div class="progress" style="height: 10px;">
+                <div class="progress" style="height: 8px;">
                     <div class="progress-bar {% if budget_summary.expense_pct > 100 %}bg-danger{% elif budget_summary.expense_pct > 75 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {% if budget_summary.expense_pct > 100 %}100{% else %}{{ budget_summary.expense_pct }}{% endif %}%;" aria-valuenow="{{ budget_summary.expense_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
                 <div class="text-end small text-muted mt-1">{{ budget_summary.expense_pct }}%</div>
@@ -160,10 +160,13 @@
 <!-- Recent entries -->
 <div class="card shadow-sm mb-4">
     <div class="card-body">
-        <h2 class="card-title h5 mb-3">Dernières écritures</h2>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="card-title h5 mb-0">Dernières écritures</h2>
+            <a href="{% url 'accounting:entry_list' %}" class="btn btn-outline-primary btn-sm">Toutes les écritures</a>
+        </div>
         <div class="table-responsive">
             <table class="table table-sm table-hover mb-0">
-                <thead class="table-light">
+                <thead>
                     <tr><th>Date</th><th>Description</th><th>Catégorie</th><th class="text-end">Montant</th></tr>
                 </thead>
                 <tbody>
@@ -188,18 +191,18 @@
 <!-- Charts -->
 <div class="row g-4 mb-4">
     <div class="col-lg-8">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm h-100">
             <div class="card-body">
                 <h2 class="card-title h5 mb-3">Recettes & Dépenses par mois</h2>
-                <canvas id="barChart" height="260"></canvas>
+                <div class="chart-wrap chart-wrap--md"><canvas id="barChart"></canvas></div>
             </div>
         </div>
     </div>
     <div class="col-lg-4">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm h-100">
             <div class="card-body">
                 <h2 class="card-title h5 mb-3">Répartition des dépenses</h2>
-                <canvas id="pieChart" height="260"></canvas>
+                <div class="chart-wrap chart-wrap--md"><canvas id="pieChart"></canvas></div>
             </div>
         </div>
     </div>
@@ -207,7 +210,7 @@
 <div class="card shadow-sm mb-4">
     <div class="card-body">
         <h2 class="card-title h5 mb-3">Évolution du solde cumulé</h2>
-        <canvas id="lineChart" height="200"></canvas>
+        <div class="chart-wrap chart-wrap--sm"><canvas id="lineChart"></canvas></div>
     </div>
 </div>
 {% endif %}
@@ -227,23 +230,66 @@
 document.addEventListener('DOMContentLoaded', function() {
     const data = {{ chart_data|safe }};
     const navy = '#1e3a5f';
-    const navyLight = 'rgba(30, 58, 95, 0.15)';
-    const green = '#198754';
-    const greenLight = 'rgba(25, 135, 84, 0.7)';
-    const red = '#dc3545';
-    const redLight = 'rgba(220, 53, 69, 0.7)';
-    const grey = 'rgba(150, 150, 150, 0.5)';
-    const greyBorder = 'rgba(150, 150, 150, 0.8)';
+    const navyFill = 'rgba(30, 58, 95, 0.12)';
+    const green = '#16794c';
+    const greenFill = 'rgba(22, 121, 76, 0.7)';
+    const red = '#b42318';
+    const redFill = 'rgba(180, 35, 24, 0.7)';
+    const greyBorder = 'rgba(122, 134, 154, 0.8)';
+    const gridColor = 'rgba(17, 35, 61, 0.06)';
+    const tickColor = '#5b6779';
+    const fontFamily = "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+
+    Chart.defaults.font.family = fontFamily;
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = tickColor;
+    Chart.defaults.borderColor = gridColor;
+
+    const fmtEUR = v => v.toLocaleString('fr-BE') + ' €';
+    const commonScales = {
+        x: {
+            grid: { display: false, drawBorder: false },
+            ticks: { color: tickColor, font: { size: 11 } }
+        },
+        y: {
+            beginAtZero: true,
+            grid: { color: gridColor, drawBorder: false },
+            border: { display: false },
+            ticks: { color: tickColor, font: { size: 11 }, padding: 8, callback: fmtEUR, maxTicksLimit: 6 }
+        }
+    };
+    const commonLegend = {
+        position: 'bottom',
+        align: 'start',
+        labels: {
+            usePointStyle: true,
+            pointStyle: 'circle',
+            boxWidth: 8,
+            boxHeight: 8,
+            padding: 16,
+            font: { size: 12 },
+            color: '#1a2233'
+        }
+    };
+    const commonTooltip = {
+        backgroundColor: '#11233d',
+        titleFont: { weight: '600' },
+        padding: 10,
+        cornerRadius: 6,
+        displayColors: true,
+        boxPadding: 4,
+        callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtEUR(ctx.parsed.y ?? ctx.parsed) }
+    };
 
     // Bar chart: income vs expense by month
     const barDatasets = [
-        {label: 'Recettes', data: data.current_income, backgroundColor: greenLight, borderColor: green, borderWidth: 1},
-        {label: 'Dépenses', data: data.current_expense, backgroundColor: redLight, borderColor: red, borderWidth: 1},
+        {label: 'Recettes', data: data.current_income, backgroundColor: greenFill, borderColor: green, borderWidth: 0, borderRadius: 4, maxBarThickness: 28},
+        {label: 'Dépenses', data: data.current_expense, backgroundColor: redFill, borderColor: red, borderWidth: 0, borderRadius: 4, maxBarThickness: 28},
     ];
     if (data.has_previous) {
         barDatasets.push(
-            {label: 'Recettes N-1', data: data.previous_income, backgroundColor: 'rgba(25, 135, 84, 0.2)', borderColor: green, borderWidth: 1, borderDash: [5, 5]},
-            {label: 'Dépenses N-1', data: data.previous_expense, backgroundColor: 'rgba(220, 53, 69, 0.2)', borderColor: red, borderWidth: 1, borderDash: [5, 5]},
+            {label: 'Recettes N-1', data: data.previous_income, backgroundColor: 'rgba(22, 121, 76, 0.22)', borderColor: green, borderWidth: 1, borderDash: [4, 4], borderRadius: 4, maxBarThickness: 28},
+            {label: 'Dépenses N-1', data: data.previous_expense, backgroundColor: 'rgba(180, 35, 24, 0.22)', borderColor: red, borderWidth: 1, borderDash: [4, 4], borderRadius: 4, maxBarThickness: 28},
         );
     }
     new Chart(document.getElementById('barChart'), {
@@ -251,18 +297,20 @@ document.addEventListener('DOMContentLoaded', function() {
         data: {labels: data.labels, datasets: barDatasets},
         options: {
             responsive: true,
-            plugins: {legend: {position: 'bottom', labels: {usePointStyle: true, padding: 15}}},
-            scales: {y: {beginAtZero: true, ticks: {callback: v => v.toLocaleString('fr-BE') + ' €'}}}
+            maintainAspectRatio: false,
+            layout: { padding: { top: 4, right: 4, bottom: 0, left: 0 } },
+            plugins: { legend: commonLegend, tooltip: commonTooltip },
+            scales: commonScales
         }
     });
 
     // Line chart: cumulative balance
     const lineDatasets = [
-        {label: 'Solde cumulé', data: data.cumul_current, borderColor: navy, backgroundColor: navyLight, fill: true, tension: 0.3, pointRadius: 4},
+        {label: 'Solde cumulé', data: data.cumul_current, borderColor: navy, backgroundColor: navyFill, fill: true, tension: 0.35, pointRadius: 3, pointHoverRadius: 5, borderWidth: 2.5},
     ];
     if (data.has_previous) {
         lineDatasets.push(
-            {label: 'Solde N-1', data: data.cumul_previous, borderColor: greyBorder, backgroundColor: 'transparent', borderDash: [6, 4], tension: 0.3, pointRadius: 3},
+            {label: 'Solde N-1', data: data.cumul_previous, borderColor: greyBorder, backgroundColor: 'transparent', borderDash: [6, 4], tension: 0.35, pointRadius: 2, pointHoverRadius: 4, borderWidth: 1.5},
         );
     }
     new Chart(document.getElementById('lineChart'), {
@@ -270,25 +318,36 @@ document.addEventListener('DOMContentLoaded', function() {
         data: {labels: data.labels, datasets: lineDatasets},
         options: {
             responsive: true,
-            plugins: {legend: {position: 'bottom', labels: {usePointStyle: true, padding: 15}}},
-            scales: {y: {ticks: {callback: v => v.toLocaleString('fr-BE') + ' €'}}}
+            maintainAspectRatio: false,
+            layout: { padding: { top: 4, right: 8, bottom: 0, left: 0 } },
+            plugins: { legend: commonLegend, tooltip: commonTooltip },
+            scales: commonScales
         }
     });
 
     // Pie chart: expense breakdown
     if (data.pie_labels.length > 0) {
-        const colors = ['#1e3a5f', '#2e5a8f', '#3d7abf', '#5c9ad5', '#7db8e8', '#a3d1f0', '#c9e4f8', '#4a7c59', '#6b9e7a', '#8cbf9b'];
+        const colors = ['#1e3a5f', '#28507f', '#3a6aa3', '#5c8ec3', '#84add6', '#16794c', '#3a9c73', '#b54708', '#e0a96d', '#7a869a'];
         new Chart(document.getElementById('pieChart'), {
             type: 'doughnut',
             data: {
                 labels: data.pie_labels,
-                datasets: [{data: data.pie_values, backgroundColor: colors.slice(0, data.pie_labels.length), borderWidth: 2}]
+                datasets: [{
+                    data: data.pie_values,
+                    backgroundColor: colors.slice(0, data.pie_labels.length),
+                    borderColor: '#fff',
+                    borderWidth: 2,
+                    hoverOffset: 6
+                }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
+                cutout: '62%',
+                layout: { padding: 6 },
                 plugins: {
-                    legend: {position: 'bottom', labels: {usePointStyle: true, padding: 10, font: {size: 11}}},
-                    tooltip: {callbacks: {label: ctx => ctx.label + ': ' + ctx.parsed.toLocaleString('fr-BE') + ' €'}}
+                    legend: { position: 'bottom', align: 'start', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, padding: 12, font: { size: 11.5 }, color: '#1a2233' } },
+                    tooltip: { ...commonTooltip, callbacks: { label: ctx => ctx.label + ': ' + fmtEUR(ctx.parsed) } }
                 }
             }
         });

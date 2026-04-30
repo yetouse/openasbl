@@ -83,6 +83,19 @@ curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-deskt
 curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-server.sh | sudo bash -s -- --dry-run
 ```
 
+### Vérification de mises à jour
+
+OpenASBL peut vérifier automatiquement s'il existe une version plus récente et afficher une alerte dans l'interface.
+
+Variables d'environnement :
+- `OPENASBL_UPDATE_CHECK_ENABLED` (`true`/`1` pour activer)
+- `OPENASBL_UPDATE_CHECK_URL` (défaut : `https://raw.githubusercontent.com/yetouse/openasbl/main/VERSION`)
+- `OPENASBL_UPDATE_CHECK_TIMEOUT` (défaut : `1.5` seconde)
+
+Par défaut :
+- mode `desktop` : activé
+- mode `server` : désactivé (activable explicitement)
+
 ## Installation
 
 ### Prérequis
