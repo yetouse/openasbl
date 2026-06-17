@@ -76,11 +76,38 @@ curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-deskt
 curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-server.sh | sudo bash
 ```
 
+### Windows (installation desktop en 1 commande)
+
+Si vous êtes déjà dans **Windows PowerShell** *et* que Python est déjà installé, lancez directement :
+
+```powershell
+irm https://raw.githubusercontent.com/yetouse/openasbl/main/install-desktop.ps1 | iex
+```
+
+Si votre poste bloque l'exécution directe, utilisez la variante en deux étapes :
+
+```powershell
+$temp = Join-Path $env:TEMP 'install-desktop.ps1'
+irm https://raw.githubusercontent.com/yetouse/openasbl/main/install-desktop.ps1 -OutFile $temp
+Set-ExecutionPolicy -Scope Process Bypass -Force
+& $temp
+```
+
+Si PowerShell vous dit encore que Python est introuvable, installez Python 3.11+ depuis python.org et désactivez les *App execution aliases* `python` / `python3` dans les paramètres Windows.
+
+Le script clone/actualise le dépôt, prépare le venv Python, installe les dépendances Node du desktop et joue les migrations.
+
 ### Option dry-run (aperçu sans exécution)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-desktop.sh | bash -s -- --dry-run
 curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-server.sh | sudo bash -s -- --dry-run
+```
+
+```powershell
+$temp = Join-Path $env:TEMP 'install-desktop.ps1'
+irm https://raw.githubusercontent.com/yetouse/openasbl/main/install-desktop.ps1 -OutFile $temp
+powershell -NoProfile -ExecutionPolicy Bypass -File $temp -DryRun
 ```
 
 ### Vérification de mises à jour
@@ -146,16 +173,24 @@ chmod +x scripts/run_desktop.sh
 ./scripts/run_desktop.sh
 ```
 
-Ce script lance Django en local uniquement (`127.0.0.1`) avec un stockage utilisateur local (`~/.openasbl` par défaut).
+Ce script lance Django en local uniquement (`127.0.0.1`) avec un stockage utilisateur local (`~/.config/openasbl-desktop/data` par défaut sous Linux).
 
 ## Déploiement
 
 Les fichiers de configuration pour un déploiement en production sont dans `deploy/` :
 
 - `gunicorn.conf.py` — Configuration Gunicorn (2 workers, timeout 120s pour WeasyPrint)
-- `nginx-openasbl.conf` — Reverse proxy Nginx
-- `openasbl.service` — Service systemd
+- `nginx-openasbl.conf` — Reverse proxy Nginx avec en-têtes de sécurité de base
+- `openasbl.service` — Service systemd avec `OPENASBL_RUNTIME_MODE=server` et `DJANGO_DEBUG=False`
 - `setup.sh` — Script d'installation serveur
+
+### Sécurité production
+
+En mode serveur, l'application refuse de démarrer si `DJANGO_SECRET_KEY` reste la valeur par défaut. Pensez aussi à :
+
+- définir `DJANGO_ALLOWED_HOSTS`
+- terminer le TLS via Nginx/certbot
+- relancer le service après toute modification du fichier systemd
 
 ## Architecture
 

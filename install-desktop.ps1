@@ -29,15 +29,40 @@ function Run-Command {
 }
 
 function Get-PythonCommand {
-  if (Get-Command py -ErrorAction SilentlyContinue) {
+  $pyCmd = Get-Command py -ErrorAction SilentlyContinue
+  if ($pyCmd) {
     return @{ Command = 'py'; Args = @('-3') }
   }
 
-  if (Get-Command python -ErrorAction SilentlyContinue) {
-    return @{ Command = 'python'; Args = @() }
+  foreach ($candidateName in @('python', 'python3')) {
+    $candidate = Get-Command $candidateName -ErrorAction SilentlyContinue
+    if (-not $candidate) {
+      continue
+    }
+
+    $candidatePath = $candidate.Source
+    if ([string]::IsNullOrWhiteSpace($candidatePath)) {
+      $candidatePath = $candidate.Path
+    }
+
+    if ([string]::IsNullOrWhiteSpace($candidatePath)) {
+      continue
+    }
+
+    if ($candidatePath -match '\\WindowsApps\\') {
+      continue
+    }
+
+    return @{ Command = $candidatePath; Args = @() }
   }
 
-  throw 'Python introuvable. Installez Python 3.11+ puis relancez le script.'
+  throw @'
+Python introuvable.
+
+Installez Python 3.11+ depuis python.org puis relancez le script.
+Sous Windows, désactivez aussi les aliases "App execution aliases" pour
+python/python3 si le Microsoft Store intercepte la commande.
+'@
 }
 
 function Get-NpmCommand {
@@ -98,6 +123,15 @@ Write-Step 'Environnement virtuel Python'
 if (-not (Test-Path $venvPython)) {
   Run-Command -Display "$($python.Command) $($pythonArgs -join ' ') -m venv `"$venvDir`"" -Action {
     & $python.Command @pythonArgs -m venv $venvDir
+  }
+
+  if (-not (Test-Path $venvPython)) {
+    throw @'
+Le venv Python n'a pas pu être créé.
+
+Vérifiez que Python 3.11+ est bien installé et que la commande python/py
+fonctionne dans ce terminal.
+'@
   }
 }
 
