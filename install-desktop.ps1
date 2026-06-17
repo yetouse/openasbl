@@ -62,6 +62,9 @@ Python introuvable.
 Installez Python 3.11+ depuis python.org puis relancez le script.
 Sous Windows, désactivez aussi les aliases "App execution aliases" pour
 python/python3 si le Microsoft Store intercepte la commande.
+
+Si votre machine est verrouillée par une politique d’entreprise, installez
+Python sur un poste autorisé ou faites valider un installeur packagé par l’IT.
 '@
 }
 

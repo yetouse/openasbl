@@ -58,6 +58,8 @@ Set-ExecutionPolicy -Scope Process Bypass -Force
 
 Si PowerShell vous dit encore que Python est introuvable, installez Python 3.11+ depuis python.org et désactivez les *App execution aliases* `python` / `python3` dans les paramètres Windows.
 
+Si votre laptop est verrouillé par une politique d’entreprise et bloque toute installation, ce script ne pourra pas aller au bout localement : il faut un poste autorisé, une installation Python déjà présente, ou un installeur packagé validé par l’IT.
+
 Le script clone/actualise le dépôt, prépare le venv Python, installe les dépendances Node du desktop et joue les migrations.
 
 ## Comportement
