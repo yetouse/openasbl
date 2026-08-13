@@ -11,6 +11,11 @@ Environment="DJANGO_DEBUG=False"
 Environment="DJANGO_SECRET_KEY=__SECRET_KEY__"
 Environment="DJANGO_ALLOWED_HOSTS=__DOMAIN__"
 Environment="OPENASBL_BIND=127.0.0.1:__PORT__"
+# Le compte de service n'a pas de dossier personnel et ProtectHome rend /home
+# inaccessible : Gunicorn a besoin d'un HOME inscriptible pour son serveur de
+# contrôle. systemd crée et nettoie /run/openasbl automatiquement.
+RuntimeDirectory=openasbl
+Environment="HOME=/run/openasbl"
 ExecStart=/opt/openasbl/venv/bin/gunicorn openasbl.wsgi:application -c /opt/openasbl/deploy/gunicorn.conf.py
 Restart=on-failure
 RestartSec=5
