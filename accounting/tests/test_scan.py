@@ -109,7 +109,24 @@ class ScanTicketViewTest(TestCase):
         image = _make_test_image()
         response = self.client.post("/scan/", {"ticket_image": image})
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "pas pu être extraits")
+        self.assertContains(response, "montant et la date n&#x27;ont pas pu être lus")
+
+    @patch("accounting.views.extract_from_image")
+    def test_scan_leaves_date_empty_when_not_detected(self, mock_extract):
+        # Pré-remplir la date du jour ferait valider une date fausse sans que
+        # rien ne le signale : le champ doit rester vide.
+        mock_extract.return_value = {
+            "amount": Decimal("25.50"),
+            "date": None,
+            "description": "COLRUYT NAMUR",
+            "raw_text": "COLRUYT NAMUR\nTOTAL 25,50 EUR",
+        }
+        image = _make_test_image()
+
+        response = self.client.post("/scan/", {"ticket_image": image})
+
+        self.assertIsNone(response.context["form"].initial["date"])
+        self.assertContains(response, "date n&#x27;a pas pu être lue")
 
     def test_scan_submit_creates_entry(self):
         response = self.client.post("/scan/", {

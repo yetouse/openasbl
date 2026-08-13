@@ -769,7 +769,9 @@ def scan_ticket(request):
         expense_cats = org.categories.filter(category_type=CategoryType.EXPENSE)
         initial = {
             "fiscal_year": open_fy.pk,
-            "date": data["date"] or datetime.date.today(),
+            # Pas de repli sur la date du jour : une date fausse validée sans
+            # avertissement est pire qu'un champ vide à compléter.
+            "date": data["date"],
             "amount": data["amount"] or "",
             "description": data["description"] or "",
             "category": expense_cats.first().pk if expense_cats.exists() else None,
@@ -783,6 +785,19 @@ def scan_ticket(request):
             ocr_warning_message = (
                 "Aucun texte n'a pu être extrait de l'image. "
                 "Réessayez avec une photo plus nette, bien cadrée et bien éclairée."
+            )
+        elif not data["amount"] and not data["date"]:
+            ocr_warning_message = (
+                "Le montant et la date n'ont pas pu être lus sur le ticket : "
+                "saisissez-les à la main."
+            )
+        elif not data["date"]:
+            ocr_warning_message = (
+                "La date n'a pas pu être lue sur le ticket : saisissez-la à la main."
+            )
+        elif not data["amount"]:
+            ocr_warning_message = (
+                "Le montant n'a pas pu être lu sur le ticket : saisissez-le à la main."
             )
         else:
             ocr_warning_message = ""
