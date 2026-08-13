@@ -9,3 +9,7 @@ media/
 *.log
 hostinger.json
 .vscode/
+
+# Données comptables locales (ne jamais publier)
+rcvd-data/
+*-data/
