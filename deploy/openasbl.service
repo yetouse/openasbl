@@ -6,12 +6,20 @@ After=network.target
 User=openasbl
 Group=www-data
 WorkingDirectory=/opt/openasbl
-Environment="DJANGO_SECRET_KEY=CHANGE_ME_IN_PRODUCTION"
+Environment="OPENASBL_RUNTIME_MODE=server"
 Environment="DJANGO_DEBUG=False"
-Environment="DJANGO_ALLOWED_HOSTS=CHANGE_ME_YOUR_DOMAIN"
+Environment="DJANGO_SECRET_KEY=__SECRET_KEY__"
+Environment="DJANGO_ALLOWED_HOSTS=__DOMAIN__"
+Environment="OPENASBL_BIND=127.0.0.1:__PORT__"
 ExecStart=/opt/openasbl/venv/bin/gunicorn openasbl.wsgi:application -c /opt/openasbl/deploy/gunicorn.conf.py
 Restart=on-failure
 RestartSec=5
+
+# Cloisonnement : le VPS héberge d'autres services.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
 
 [Install]
 WantedBy=multi-user.target

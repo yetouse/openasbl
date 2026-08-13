@@ -73,8 +73,14 @@ curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-deskt
 ### Mode serveur (production)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-server.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-server.sh \
+  | sudo bash -s -- --domain compta.mon-asbl.be --email moi@mon-asbl.be
 ```
+
+`--domain` est obligatoire : le vhost nginx est limité à ce nom, afin de pouvoir
+héberger d'autres services sur la même machine. `--email` active HTTPS via
+certbot ; `--port` (défaut `8000`) change le port local de Gunicorn en cas de
+cohabitation avec un autre service.
 
 ### Windows (installation desktop en 1 commande)
 
@@ -103,7 +109,7 @@ Le script clone/actualise le dépôt, prépare le venv Python, installe les dép
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-desktop.sh | bash -s -- --dry-run
-curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-server.sh | sudo bash -s -- --dry-run
+curl -fsSL https://raw.githubusercontent.com/yetouse/openasbl/main/install-server.sh | bash -s -- --domain compta.mon-asbl.be --dry-run
 ```
 
 ```powershell
@@ -181,17 +187,30 @@ Ce script lance Django en local uniquement (`127.0.0.1`) avec un stockage utilis
 
 Les fichiers de configuration pour un déploiement en production sont dans `deploy/` :
 
-- `gunicorn.conf.py` — Configuration Gunicorn (2 workers, timeout 120s pour WeasyPrint)
-- `nginx-openasbl.conf` — Reverse proxy Nginx avec en-têtes de sécurité de base
-- `openasbl.service` — Service systemd avec `OPENASBL_RUNTIME_MODE=server` et `DJANGO_DEBUG=False`
-- `setup.sh` — Script d'installation serveur
+- `gunicorn.conf.py` — Configuration Gunicorn (2 workers, timeout 120s pour WeasyPrint, port réglable via `OPENASBL_BIND`)
+- `nginx-openasbl.conf` — Gabarit de vhost Nginx avec en-têtes de sécurité de base
+- `openasbl.service` — Gabarit de service systemd (`OPENASBL_RUNTIME_MODE=server`, `DJANGO_DEBUG=False`)
+
+Les deux gabarits contiennent des marqueurs `__DOMAIN__`, `__PORT__` et
+`__SECRET_KEY__` que `install-server.sh` remplace à l'installation. La clé
+secrète est générée automatiquement, puis conservée d'une mise à jour à l'autre.
 
 ### Sécurité production
 
-En mode serveur, l'application refuse de démarrer si `DJANGO_SECRET_KEY` reste la valeur par défaut. Pensez aussi à :
+En mode serveur avec `DJANGO_DEBUG=False`, l'application **refuse de démarrer**
+si `DJANGO_SECRET_KEY` n'est pas défini. Dans ce mode, elle active aussi :
 
-- définir `DJANGO_ALLOWED_HOSTS`
+- `SECURE_PROXY_SSL_HEADER` — indispensable derrière Nginx en TLS, sans quoi
+  Django croit répondre en clair et rejette tous les POST au contrôle CSRF
+- `CSRF_TRUSTED_ORIGINS` — déduit de `DJANGO_ALLOWED_HOSTS`, ou forcé via
+  `DJANGO_CSRF_TRUSTED_ORIGINS`
+- cookies de session et CSRF en `Secure` + `HttpOnly`
+
+Pensez aussi à :
+
+- définir `DJANGO_ALLOWED_HOSTS` (le nom de domaine servi)
 - terminer le TLS via Nginx/certbot
+- activer HSTS une fois le HTTPS confirmé : `DJANGO_HSTS_SECONDS=31536000`
 - relancer le service après toute modification du fichier systemd
 
 ## Architecture

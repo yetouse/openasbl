@@ -1,16 +1,17 @@
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- Mode dual: "server" (défaut) ou "desktop" (usage local via Electron) ---
 OPENASBL_RUNTIME_MODE = os.environ.get("OPENASBL_RUNTIME_MODE", "server")
 OPENASBL_IS_DESKTOP = OPENASBL_RUNTIME_MODE == "desktop"
 
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-dev-only-change-in-production",
-)
+DEFAULT_SECRET_KEY = "django-insecure-dev-only-change-in-production"
+
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", DEFAULT_SECRET_KEY)
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in ("true", "1")
 
@@ -23,7 +24,45 @@ if OPENASBL_IS_DESKTOP:
     )
     OPENASBL_DATA_DIR.mkdir(parents=True, exist_ok=True)
 else:
-    ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    ALLOWED_HOSTS = [
+        host.strip()
+        for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+        if host.strip()
+    ]
+
+# --- Sécurité du mode serveur en production ---------------------------------
+# Le mode serveur sans DEBUG suppose un déploiement derrière un reverse proxy
+# qui termine le TLS (nginx + certbot). Sans ces réglages, Django croit parler
+# en clair et rejette tous les POST au contrôle d'origine CSRF.
+if not OPENASBL_IS_DESKTOP and not DEBUG:
+    if SECRET_KEY == DEFAULT_SECRET_KEY:
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY doit être défini en mode serveur. "
+            "Générez une clé : python3 -c \"import secrets; print(secrets.token_urlsafe(50))\""
+        )
+
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    # Origines autorisées pour le contrôle CSRF, déduites des hôtes servis.
+    _csrf_origins = os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "")
+    if _csrf_origins:
+        CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(",") if o.strip()]
+    else:
+        CSRF_TRUSTED_ORIGINS = [
+            f"https://{host}"
+            for host in ALLOWED_HOSTS
+            if host not in ("localhost", "127.0.0.1") and not host.startswith(".")
+        ]
+
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+
+    # HSTS : désactivé par défaut car irréversible côté navigateur pendant sa
+    # durée de vie. À activer une fois le TLS confirmé (ex : 31536000).
+    SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SECONDS", "0"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
 
 INSTALLED_APPS = [
     "django.contrib.admin",
