@@ -118,10 +118,22 @@ class PreprocessImageTest(TestCase):
         result = preprocess_image(img)
         self.assertEqual(result.mode, "L")
 
-    def test_output_same_size(self):
+    def test_enlarges_small_images(self):
+        # Tesseract lit mal les petits caractères : les images trop réduites
+        # sont agrandies avant lecture.
         img = Image.new("RGB", (200, 150))
         result = preprocess_image(img)
-        self.assertEqual(result.size, (200, 150))
+        self.assertGreaterEqual(result.width, 1200)
+
+    def test_keeps_aspect_ratio(self):
+        img = Image.new("RGB", (200, 150))
+        result = preprocess_image(img)
+        self.assertAlmostEqual(result.width / result.height, 200 / 150, delta=0.02)
+
+    def test_leaves_large_images_untouched(self):
+        img = Image.new("RGB", (1600, 1200))
+        result = preprocess_image(img)
+        self.assertEqual(result.size, (1600, 1200))
 
 
 class ExtractFromImageTest(TestCase):

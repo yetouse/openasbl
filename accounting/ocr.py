@@ -42,13 +42,91 @@ def fix_orientation(image):
     return image
 
 
+def _line_contrast(binary, angle):
+    """
+    Mesure à quel point les lignes de texte sont horizontales à cet angle.
+
+    On moyenne chaque ligne de pixels : quand le texte est droit, le profil
+    alterne franchement entre lignes écrites et interlignes vides. La somme
+    des écarts au carré est donc maximale à l'angle correct.
+    """
+    rotated = binary.rotate(angle, resample=Image.BILINEAR, fillcolor=0)
+    profile = list(rotated.resize((1, rotated.height)).getdata())
+    return sum(
+        (profile[i + 1] - profile[i]) ** 2 for i in range(len(profile) - 1)
+    )
+
+
+def estimate_skew(image, max_angle=12.0):
+    """
+    Estime l'angle de correction, en degrés, à passer à ``image.rotate()``
+    pour redresser le texte.
+
+    Tesseract ne corrige que les rotations d'un quart de tour ; or une photo
+    prise à main levée est toujours penchée de quelques degrés, ce qui suffit
+    à faire échouer la lecture.
+
+    Returns:
+        float : angle de correction, 0.0 si aucune inclinaison nette.
+    """
+    work = image.convert("L")
+    if work.width > 800:
+        work = work.resize((800, max(1, work.height * 800 // work.width)))
+
+    # Texte en blanc sur fond noir : la rotation comble avec du noir, ce qui
+    # n'ajoute aucun faux contraste sur les bords.
+    binary = work.point(lambda pixel: 255 if pixel < 160 else 0)
+
+    reference = _line_contrast(binary, 0.0)
+    if reference <= 0:
+        # Image uniforme ou sans texte : rien à redresser.
+        return 0.0
+
+    coarse = max(
+        (a / 2 for a in range(int(-max_angle * 2), int(max_angle * 2) + 1, 4)),
+        key=lambda a: _line_contrast(binary, a),
+    )
+    best = max(
+        (coarse + step / 2 for step in range(-4, 5)),
+        key=lambda a: _line_contrast(binary, a),
+    )
+
+    # Sans gain net, mieux vaut ne pas tourner l'image inutilement.
+    if _line_contrast(binary, best) < reference * 1.05:
+        return 0.0
+
+    return round(best, 1)
+
+
+def upscale_small_image(image, target_width=1200):
+    """
+    Tesseract lit mal les caractères de moins d'une vingtaine de pixels.
+    Une photo recadrée ou compressée gagne à être agrandie avant lecture.
+    """
+    if image.width >= target_width:
+        return image
+    height = max(1, image.height * target_width // image.width)
+    return image.resize((target_width, height), Image.LANCZOS)
+
+
 def preprocess_image(image):
     """
     Pre-process image for better OCR results.
-    Fixes orientation, converts to grayscale, enhances contrast, and sharpens.
+
+    Corrige l'orientation, redresse le texte, agrandit les petites images,
+    puis renforce le contraste et la netteté.
     """
     image = fix_orientation(image)
     image = image.convert("L")
+
+    angle = estimate_skew(image)
+    if abs(angle) >= 0.5:
+        image = image.rotate(
+            angle, resample=Image.BICUBIC, expand=True, fillcolor=255
+        )
+
+    image = upscale_small_image(image)
+    image = ImageOps.autocontrast(image)
     image = ImageEnhance.Contrast(image).enhance(2.0)
     image = image.filter(ImageFilter.SHARPEN)
     return image
