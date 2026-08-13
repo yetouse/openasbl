@@ -8,6 +8,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from accounting.models import AssetSnapshot, Budget, Category, Entry, FiscalYear
+from accounts.models import PermissionLevel, UserProfile
 from core.models import Organization
 
 
@@ -27,6 +28,11 @@ class Command(BaseCommand):
             dest="dry_run",
             help="Affiche ce qui serait importé, sans rien écrire en base",
         )
+        parser.add_argument(
+            "--user",
+            dest="user",
+            help="Compte qui signera les écritures (défaut : un administrateur)",
+        )
 
     def handle(self, *args, **options):
         payload = json.loads(Path(options["source"]).read_text(encoding="utf-8"))
@@ -38,9 +44,7 @@ class Command(BaseCommand):
                 "Lancez d'abord l'assistant de configuration."
             )
 
-        author = User.objects.filter(is_superuser=True).order_by("pk").first()
-        if author is None:
-            raise CommandError("Aucun compte administrateur pour signer les écritures.")
+        author = self.resolve_author(options["user"])
 
         with transaction.atomic():
             for year in payload["fiscal_years"]:
@@ -51,6 +55,33 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING("Simulation : rien n'a été écrit."))
             else:
                 self.stdout.write(self.style.SUCCESS("Import terminé."))
+
+    def resolve_author(self, username):
+        """Compte qui signera les écritures importées."""
+        if username:
+            try:
+                return User.objects.get(username=username)
+            except User.DoesNotExist:
+                raise CommandError(f"Utilisateur inconnu : {username}")
+
+        superuser = User.objects.filter(is_superuser=True).order_by("pk").first()
+        if superuser:
+            return superuser
+
+        # L'assistant de configuration crée un administrateur applicatif, qui
+        # n'est pas un superutilisateur Django.
+        profile = (
+            UserProfile.objects.filter(permission_level=PermissionLevel.ADMIN)
+            .order_by("pk")
+            .first()
+        )
+        if profile:
+            return profile.user
+
+        raise CommandError(
+            "Aucun compte administrateur pour signer les écritures. "
+            "Précisez un compte avec --user."
+        )
 
     def import_year(self, year, organization, author):
         start_date = date.fromisoformat(year["start_date"])

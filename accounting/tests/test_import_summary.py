@@ -11,6 +11,7 @@ from django.test import TestCase
 
 from accounting.models import (AssetSnapshot, Budget, Category, CategoryType, Entry,
                                FiscalYear)
+from accounts.models import PermissionLevel, UserProfile
 from core.models import Organization
 
 
@@ -233,6 +234,28 @@ class ImportSummaryCommandTest(TestCase):
         self.assertEqual(Budget.objects.count(), 0)
         self.assertEqual(Entry.objects.count(), 0)
         self.assertEqual(AssetSnapshot.objects.count(), 0)
+
+    def test_signs_entries_with_the_named_user(self):
+        other = User.objects.create_user("secretaire", "s@example.be", "secret")
+        path = self.write_payload(self.full_payload())
+
+        call_command("import_summary", path, user="secretaire")
+
+        self.assertEqual(Entry.objects.get().created_by, other)
+
+    def test_signs_entries_with_application_admin_when_no_superuser(self):
+        self.user.is_superuser = False
+        self.user.save()
+        UserProfile.objects.create(
+            user=self.user,
+            organization=self.org,
+            permission_level=PermissionLevel.ADMIN,
+        )
+        path = self.write_payload(self.full_payload())
+
+        call_command("import_summary", path)
+
+        self.assertEqual(Entry.objects.get().created_by, self.user)
 
     def test_fails_clearly_without_organization(self):
         Organization.objects.all().delete()
